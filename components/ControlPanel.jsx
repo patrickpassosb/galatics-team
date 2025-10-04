@@ -94,34 +94,7 @@ function ControlPanel() {
               onChange={(e) => handleAsteroidChange('angle', e.target.value)}
               className='w-full'
             />
-            <span className='text-sm text-gray-300'>{asteroid.angle.toFixed(0)}Â°</span>
-          </div>
-
-          <div>
-            <label className='block text-sm mb-1'>Azimuth (degrees)</label>
-            <input
-              type='range'
-              min='0'
-              max='360'
-              value={asteroid.azimuth}
-              onChange={(e) => handleAsteroidChange('azimuth', e.target.value)}
-              className='w-full'
-            />
-            <span className='text-sm text-gray-300'>{asteroid.azimuth.toFixed(0)}Â°</span>
-          </div>
-
-          <div>
-            <label className='block text-sm mb-1'>Distance (km)</label>
-            <input
-              type='range'
-              min='100000'
-              max='5000000'
-              step='10000'
-              value={asteroid.distance}
-              onChange={(e) => handleAsteroidChange('distance', e.target.value)}
-              className='w-full'
-            />
-            <span className='text-sm text-gray-300'>{(asteroid.distance / 1000).toFixed(0)}k km</span>
+            <span className='text-sm text-gray-300'>{asteroid.angle.toFixed(0)}°</span>
           </div>
 
           <button
@@ -146,16 +119,18 @@ function ControlPanel() {
                   onClick={() => selectNEO(neo)}
                   className='p-3 bg-space-light hover:bg-space-light/70 rounded cursor-pointer transition-colors'
                 >
-                  <div className='font-semibold text-sm'>{neo.name}</div>
-                  <div className='text-xs text-gray-300 mt-1'>
-                    Diameter: {neo.estimated_diameter.meters.estimated_diameter_max.toFixed(0)} m
+                  <div className='flex items-start justify-between'>
+                    <div className='font-semibold text-sm'>{neo.name}</div>
+                    {neo.isPotentiallyHazardous && (
+                      <span className='text-xs text-red-400'>⚠</span>
+                    )}
                   </div>
-                  <div className='text-xs text-gray-300'>
-                    Velocity: {neo.close_approach_data[0]?.relative_velocity.kilometers_per_second} km/s
+                  <div className='text-xs text-gray-300 mt-1 space-y-0.5'>
+                    <div>Diameter: {neo.diameter.average.toFixed(0)} m</div>
+                    <div>Velocity: {neo.velocity.toFixed(1)} km/s</div>
+                    <div>Distance: {(neo.distance / 1000).toFixed(0)}k km</div>
+                    <div>Date: {neo.closeApproachDate}</div>
                   </div>
-                  {neo.is_potentially_hazardous && (
-                    <span className='text-xs text-red-400'>âš  Potentially Hazardous</span>
-                  )}
                 </div>
               ))}
             </div>
@@ -204,19 +179,6 @@ function ControlPanel() {
               {showImpactZone ? 'Hide' : 'Show'} Impact Zone
             </button>
           </div>
-
-          {impact.calculated && (
-            <div className='mt-4 p-3 bg-red-900/30 rounded'>
-              <h4 className='font-semibold mb-2'>Impact Analysis</h4>
-              <div className='text-sm space-y-1'>
-                <div>Energy: {impact.energy.toFixed(2)} MT TNT</div>
-                <div>Crater: {impact.craterDiameter.toFixed(0)} m</div>
-                <div>Magnitude: {impact.seismicMagnitude.toFixed(1)}</div>
-                <div>Airblast: {impact.airblastRadius.toFixed(1)} km</div>
-                <div>Thermal: {impact.thermalRadius.toFixed(1)} km</div>
-              </div>
-            </div>
-          )}
         </div>
       )}
     </div>

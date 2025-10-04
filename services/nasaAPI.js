@@ -5,6 +5,14 @@ const NASA_API_KEY = 'DEMO_KEY' // Users should replace with their own key from 
 const NEO_API_URL = 'https://api.nasa.gov/neo/rest/v1/feed'
 
 /**
+ * Clean asteroid name (remove parentheses and extra info)
+ */
+function cleanAsteroidName(name) {
+  // Remove parentheses and content inside
+  return name.replace(/\([^)]*\)/g, '').trim()
+}
+
+/**
  * Fetch Near-Earth Object data from NASA API
  * Returns asteroid data for the current week
  */
@@ -25,24 +33,40 @@ export async function fetchNASANEOData() {
       }
     })
 
-    // Extract and format NEO data
+    // Extract and format ONLY necessary NEO data for simulation
     const neoData = []
     const nearEarthObjects = response.data.near_earth_objects
 
     Object.keys(nearEarthObjects).forEach(date => {
       nearEarthObjects[date].forEach(neo => {
+        // Get first close approach data
+        const approach = neo.close_approach_data?.[0]
+        if (!approach) return // Skip if no approach data
+        
+        // Calculate average diameter in meters
+        const diameterMin = neo.estimated_diameter?.meters?.estimated_diameter_min || 0
+        const diameterMax = neo.estimated_diameter?.meters?.estimated_diameter_max || 0
+        const diameterAvg = (diameterMin + diameterMax) / 2
+        
+        // Extract only fields needed for simulation
         neoData.push({
           id: neo.id,
-          name: neo.name,
-          nasa_jpl_url: neo.nasa_jpl_url,
-          absolute_magnitude: neo.absolute_magnitude_h,
-          estimated_diameter: neo.estimated_diameter,
-          is_potentially_hazardous: neo.is_potentially_hazardous_asteroid,
-          close_approach_data: neo.close_approach_data,
-          orbital_data: neo.orbital_data
+          name: cleanAsteroidName(neo.name),
+          diameter: {
+            min: diameterMin,
+            max: diameterMax,
+            average: diameterAvg
+          },
+          velocity: parseFloat(approach.relative_velocity?.kilometers_per_second) || 20,
+          distance: parseFloat(approach.miss_distance?.kilometers) || 1000000,
+          closeApproachDate: approach.close_approach_date || 'Unknown',
+          isPotentiallyHazardous: neo.is_potentially_hazardous_asteroid || false
         })
       })
     })
+
+    // Sort by closest approach (smallest distance first)
+    neoData.sort((a, b) => a.distance - b.distance)
 
     return neoData
   } catch (error) {
@@ -64,72 +88,61 @@ function formatDate(date) {
 
 /**
  * Mock NEO data for testing when API is unavailable
+ * Cleaned structure matching the API response
  */
 function getMockNEOData() {
   return [
     {
-      id: '2000433',
-      name: '433 Eros',
-      nasa_jpl_url: 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=2000433',
-      absolute_magnitude: 10.4,
-      estimated_diameter: {
-        kilometers: {
-          estimated_diameter_min: 13.0,
-          estimated_diameter_max: 29.0
-        },
-        meters: {
-          estimated_diameter_min: 13000.0,
-          estimated_diameter_max: 29000.0
-        }
+      id: '2099942',
+      name: 'Apophis',
+      diameter: {
+        min: 310,
+        max: 700,
+        average: 505
       },
-      is_potentially_hazardous: false,
-      close_approach_data: [
-        {
-          close_approach_date: '2025-10-15',
-          relative_velocity: {
-            kilometers_per_second: '12.5',
-            kilometers_per_hour: '45000'
-          },
-          miss_distance: {
-            astronomical: '0.18',
-            lunar: '70.0',
-            kilometers: '26000000',
-            miles: '16000000'
-          }
-        }
-      ]
+      velocity: 7.4,
+      distance: 31600,
+      closeApproachDate: '2029-04-13',
+      isPotentiallyHazardous: true
     },
     {
-      id: '2099942',
-      name: '99942 Apophis',
-      nasa_jpl_url: 'http://ssd.jpl.nasa.gov/sbdb.cgi?sstr=2099942',
-      absolute_magnitude: 19.7,
-      estimated_diameter: {
-        kilometers: {
-          estimated_diameter_min: 0.31,
-          estimated_diameter_max: 0.70
-        },
-        meters: {
-          estimated_diameter_min: 310.0,
-          estimated_diameter_max: 700.0
-        }
+      id: '2000433',
+      name: 'Eros',
+      diameter: {
+        min: 13000,
+        max: 29000,
+        average: 21000
       },
-      is_potentially_hazardous: true,
-      close_approach_data: [
-        {
-          close_approach_date: '2029-04-13',
-          relative_velocity: {
-            kilometers_per_second: '7.4',
-            kilometers_per_hour: '26640'
-          },
-          miss_distance: {
-            astronomical: '0.0002',
-            lunar: '0.078',
-            kilometers: '31600',
-            miles: '19600'
-          }
-        }
-      ]
+      velocity: 12.5,
+      distance: 26000000,
+      closeApproachDate: '2025-10-15',
+      isPotentiallyHazardous: false
+    },
+    {
+      id: '2101955',
+      name: 'Bennu',
+      diameter: {
+        min: 480,
+        max: 510,
+        average: 495
+      },
+      velocity: 28.0,
+      distance: 480000,
+      closeApproachDate: '2026-09-25',
+      isPotentiallyHazardous: true
+    },
+    {
+      id: '2162173',
+      name: 'Ryugu',
+      diameter: {
+        min: 850,
+        max: 950,
+        average: 900
+      },
+      velocity: 31.5,
+      distance: 850000,
+      closeApproachDate: '2027-03-10',
+      isPotentiallyHazardous: false
     }
   ]
 }

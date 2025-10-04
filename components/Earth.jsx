@@ -1,14 +1,23 @@
 ﻿import React, { useRef, Suspense, useMemo } from 'react'
-import { useFrame, useLoader } from '@react-three/fiber'
+import { useFrame, useLoader, useThree } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 import * as THREE from 'three'
 import { useSimulationStore } from '../store/simulationStore'
 import { latLonToCartesian } from '../physics/orbitalMechanics'
 
+// Convert 3D point on Earth to latitude/longitude
+function cartesianToLatLon(x, y, z) {
+  const radius = Math.sqrt(x * x + y * y + z * z)
+  const lat = 90 - (Math.acos(y / radius) * 180 / Math.PI)
+  const lon = (Math.atan2(z, -x) * 180 / Math.PI) - 180
+  return { lat, lon }
+}
+
 function EarthMesh() {
   const earthRef = useRef()
   const craterGroupRef = useRef()
-  const { impactOccurred, impact } = useSimulationStore()
+  const { impactOccurred, impact, isPlaying, setImpactLocation, calculateImpact, updateTrajectory } = useSimulationStore()
+  const { gl } = useThree() // Get gl context for cursor changes
 
   // Load Earth texture
   const colorMap = useLoader(
@@ -55,11 +64,36 @@ function EarthMesh() {
     return new THREE.CanvasTexture(canvas)
   }, [])
 
-  // Slow rotation
-  useFrame((state, delta) => {
-    if (earthRef.current) {
-      earthRef.current.rotation.y += delta * 0.05
+  // 🎯 Handle click on Earth to set impact location
+  const handleEarthClick = (event) => {
+    // Don't allow clicking during animation
+    if (isPlaying) return
+    
+    event.stopPropagation()
+    
+    // Get the intersection point
+    if (event.intersections && event.intersections.length > 0) {
+      const intersection = event.intersections[0]
+      const point = intersection.point
+      
+      // Convert to lat/lon
+      const { lat, lon } = cartesianToLatLon(point.x, point.y, point.z)
+      
+      // Update impact location
+      setImpactLocation(lat, lon)
+      
+      // Recalculate trajectory for new location
+      calculateImpact()
+      updateTrajectory()
     }
+  }
+
+  // Update crater position (rotation DISABLED)
+  useFrame(() => {
+    // 🛑 EARTH ROTATION DISABLED for better visibility
+    // if (earthRef.current) {
+    //   earthRef.current.rotation.y += delta * 0.05
+    // }
     
     // Update crater position to stay on impact location
     if (craterGroupRef.current && impactOccurred && impact && typeof impact.latitude === 'number' && typeof impact.longitude === 'number') {
@@ -79,8 +113,16 @@ function EarthMesh() {
 
   return (
     <group>
-      {/* Earth sphere */}
-      <mesh ref={earthRef} position={[0, 0, 0]} castShadow receiveShadow>
+      {/* Earth sphere - CLICKABLE with cursor feedback */}
+      <mesh 
+        ref={earthRef} 
+        position={[0, 0, 0]} 
+        castShadow 
+        receiveShadow
+        onClick={handleEarthClick}
+        onPointerOver={() => !isPlaying && (gl.domElement.style.cursor = 'crosshair')}
+        onPointerOut={() => gl.domElement.style.cursor = 'auto'}
+      >
         <sphereGeometry args={[300, 128, 128]} />
         <meshStandardMaterial
           map={colorMap}
@@ -124,11 +166,12 @@ function EarthMesh() {
 function EarthFallback() {
   const earthRef = useRef()
 
-  useFrame((state, delta) => {
-    if (earthRef.current) {
-      earthRef.current.rotation.y += delta * 0.05
-    }
-  })
+  // 🛑 EARTH ROTATION DISABLED for better visibility
+  // useFrame((state, delta) => {
+  //   if (earthRef.current) {
+  //     earthRef.current.rotation.y += delta * 0.05
+  //   }
+  // })
 
   return (
     <mesh ref={earthRef} position={[0, 0, 0]} castShadow receiveShadow>

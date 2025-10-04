@@ -6,6 +6,7 @@ import Asteroid from './Asteroid'
 import AsteroidTrajectory from './AsteroidTrajectory'
 import ImpactZone from './ImpactZone'
 import ImpactEffects from './ImpactEffects'
+import ImpactMarker from './ImpactMarker'
 
 function Scene() {
   return (
@@ -31,6 +32,7 @@ function Scene() {
           <AsteroidTrajectory />
           <ImpactZone />
           <ImpactEffects />
+          <ImpactMarker />
 
           {/* Camera controls */}
           <OrbitControls

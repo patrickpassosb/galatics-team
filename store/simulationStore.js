@@ -115,32 +115,26 @@ export const useSimulationStore = create((set, get) => ({
   },
 
   selectNEO: (neo) => {
-    // Safely parse NASA NEO data with fallbacks
-    const velocityStr = neo.close_approach_data?.[0]?.relative_velocity?.kilometers_per_second
-    const distanceStr = neo.close_approach_data?.[0]?.miss_distance?.kilometers
-    const diameterMax = neo.estimated_diameter?.meters?.estimated_diameter_max
-    
-    // Convert NASA NEO data to our asteroid format with proper type conversion
+    // Convert cleaned NASA NEO data to asteroid format
     const asteroid = {
       name: neo.name || 'Unknown Asteroid',
-      diameter: parseFloat(diameterMax) || 100,
-      velocity: parseFloat(velocityStr) || 20,
+      diameter: neo.diameter.average || 100, // Use averaged diameter
+      velocity: neo.velocity || 20,
       mass: 0,
-      angle: 45,
-      azimuth: 0,
-      distance: parseFloat(distanceStr) || 1000000,
-      density: 2600
+      angle: 45, // Default impact angle
+      azimuth: 0, // Default approach direction
+      distance: neo.distance || 1000000,
+      density: 2600 // Standard asteroid density kg/m³
     }
     
-    // Calculate mass from diameter and density
+    // Calculate mass from diameter and density (sphere approximation)
     const radius = asteroid.diameter / 2
     const volume = (4/3) * Math.PI * Math.pow(radius, 3)
     asteroid.mass = volume * asteroid.density
 
     set({ selectedNEO: neo, asteroid })
     
-    // Calculate impact with current impact location
-    const { impact } = get()
+    // Auto-calculate impact with current location
     get().calculateImpact()
     get().updateTrajectory()
   },

@@ -15,38 +15,64 @@ function ImpactEffects() {
   const [effectTime, setEffectTime] = useState(0)
   const [active, setActive] = useState(false)
   
-  const { impactOccurred, impact } = useSimulationStore()
+  const { impactOccurred, impact, asteroid } = useSimulationStore()
 
-  // Create debris particles
+  // 🔬 PHYSICS-BASED EXPLOSION SCALING
+  const impactPhysics = useMemo(() => {
+    const velocity = asteroid.velocity || 20 // km/s
+    const diameter = asteroid.diameter || 100 // meters
+    const density = asteroid.density || 2600 // kg/m³
+    
+    // Calculate impact energy: E = v × d × ρ (simplified)
+    const impactEnergy = velocity * diameter * density
+    
+    // Scale explosion using cube root for realistic proportions
+    const explosionScale = Math.cbrt(impactEnergy) / 80
+    
+    return {
+      scale: Math.max(0.8, Math.min(explosionScale, 4)), // Clamp for performance
+      lightIntensity: Math.max(150, explosionScale * 100),
+      particleCount: Math.max(50, Math.min(Math.floor(explosionScale * 35), 120)),
+      shockwaveSize: Math.max(60, explosionScale * 50),
+      fireballSize: Math.max(40, explosionScale * 35)
+    }
+  }, [asteroid.velocity, asteroid.diameter, asteroid.density])
+
+  // 🪨 DEBRIS PARTICLES (scaled by physics)
   const debrisParticles = useMemo(() => {
     const particles = []
-    for (let i = 0; i < 60; i++) {
+    const count = impactPhysics.particleCount
+    const speedMult = impactPhysics.scale
+    
+    for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2
       const phi = Math.random() * Math.PI * 0.4 // Cone upward
-      const speed = 10 + Math.random() * 20
+      const speed = (10 + Math.random() * 20) * speedMult
       
       particles.push({
         velocity: new THREE.Vector3(
           Math.sin(phi) * Math.cos(theta) * speed,
-          Math.cos(phi) * speed + 5, // Bias upward
+          Math.cos(phi) * speed + 5 * speedMult,
           Math.sin(phi) * Math.sin(theta) * speed
         ),
         position: new THREE.Vector3(0, 0, 0),
-        size: 2 + Math.random() * 3,
+        size: (2 + Math.random() * 3) * impactPhysics.scale,
         rotation: Math.random() * Math.PI * 2,
         rotationSpeed: (Math.random() - 0.5) * 5
       })
     }
     return particles
-  }, [])
+  }, [impactPhysics])
 
-  // Create smoke particles
+  // ☁️ SMOKE PARTICLES (scaled by physics)
   const smokeParticles = useMemo(() => {
     const particles = []
-    for (let i = 0; i < 30; i++) {
+    const count = Math.floor(impactPhysics.particleCount * 0.5)
+    
+    for (let i = 0; i < count; i++) {
       const theta = Math.random() * Math.PI * 2
       const phi = Math.random() * Math.PI * 0.3
-      const speed = 5 + Math.random() * 10
+      const speed = (5 + Math.random() * 10) * impactPhysics.scale
       
       particles.push({
         velocity: new THREE.Vector3(
@@ -55,11 +81,11 @@ function ImpactEffects() {
           Math.sin(phi) * Math.sin(theta) * speed
         ),
         position: new THREE.Vector3(0, 0, 0),
-        size: 5 + Math.random() * 8
+        size: (5 + Math.random() * 8) * impactPhysics.scale
       })
     }
     return particles
-  }, [])
+  }, [impactPhysics])
 
   // Activate effects when impact occurs
   useEffect(() => {
@@ -84,38 +110,38 @@ function ImpactEffects() {
       }
     }
     
-    // MEGA BRIGHT light flash
+    // 💡 BLINDING LIGHT FLASH (scaled by physics)
     if (lightRef.current) {
       const flashDuration = 0.8
       const intensity = Math.max(0, 1 - effectTime / flashDuration)
-      lightRef.current.intensity = intensity * 200
+      lightRef.current.intensity = intensity * impactPhysics.lightIntensity
     }
     
-    // Massive expanding fireball
+    // 🔥 MASSIVE FIREBALL (scaled by physics)
     if (fireballRef.current) {
       const duration = 2.0
       const progress = Math.min(1, effectTime / duration)
-      const scale = 8 + progress * 60
+      const scale = 8 + progress * impactPhysics.fireballSize
       const opacity = Math.max(0, (1 - progress) * 0.95)
       
       fireballRef.current.scale.setScalar(scale)
       fireballRef.current.material.opacity = opacity
     }
     
-    // Multiple expanding shockwaves
+    // 💥 EXPANDING SHOCKWAVE (scaled by physics)
     if (shockwaveRef.current) {
       const duration = 3.0
       const progress = Math.min(1, effectTime / duration)
-      const scale = 5 + progress * 80
+      const scale = 5 + progress * impactPhysics.shockwaveSize
       const opacity = Math.max(0, (1 - progress) * 0.7)
       
       shockwaveRef.current.scale.set(scale, scale, 1)
       shockwaveRef.current.material.opacity = opacity
     }
     
-    // Animate debris particles
+    // 🪨 DEBRIS with PHYSICS (gravity + air resistance)
     debrisParticles.forEach((particle, i) => {
-      if (effectTime < 3) {
+      if (effectTime < 6) { // 6-second lifetime
         particle.position.add(particle.velocity.clone().multiplyScalar(delta))
         particle.velocity.y -= delta * 8 // Gravity
         particle.velocity.multiplyScalar(0.98) // Air resistance
@@ -124,23 +150,23 @@ function ImpactEffects() {
         if (debrisRefs.current[i]) {
           debrisRefs.current[i].position.copy(particle.position)
           debrisRefs.current[i].rotation.z = particle.rotation
-          const life = 1 - (effectTime / 3)
+          const life = 1 - (effectTime / 6)
           debrisRefs.current[i].scale.setScalar(particle.size * life)
           debrisRefs.current[i].material.opacity = life * 0.9
         }
       }
     })
     
-    // Animate smoke particles
+    // ☁️ SMOKE RISES & EXPANDS
     smokeParticles.forEach((particle, i) => {
-      if (effectTime < 4) {
+      if (effectTime < 8) { // 8-second smoke lifetime
         particle.position.add(particle.velocity.clone().multiplyScalar(delta))
         particle.velocity.y += delta * 3 // Smoke rises
         particle.velocity.multiplyScalar(0.97)
         
         if (smokeRefs.current[i]) {
           smokeRefs.current[i].position.copy(particle.position)
-          const life = 1 - (effectTime / 4)
+          const life = 1 - (effectTime / 8)
           const scale = particle.size * (1.5 - life * 0.5) // Expands
           smokeRefs.current[i].scale.setScalar(scale)
           smokeRefs.current[i].material.opacity = life * 0.7
@@ -153,7 +179,7 @@ function ImpactEffects() {
 
   return (
     <group ref={groupRef}>
-      {/* MEGA BRIGHT Light flash */}
+      {/* 💡 MEGA BRIGHT Light flash */}
       <pointLight
         ref={lightRef}
         color='#ffcc00'
@@ -162,7 +188,7 @@ function ImpactEffects() {
         decay={1.5}
       />
       
-      {/* MASSIVE Fireball */}
+      {/* 🔥 MASSIVE Fireball */}
       <mesh ref={fireballRef}>
         <sphereGeometry args={[1, 32, 32]} />
         <meshBasicMaterial
@@ -174,7 +200,7 @@ function ImpactEffects() {
         />
       </mesh>
       
-      {/* Expanding shockwave ring on surface */}
+      {/* 💥 Expanding shockwave ring on surface */}
       <mesh ref={shockwaveRef}>
         <ringGeometry args={[8, 12, 64]} />
         <meshBasicMaterial
@@ -187,7 +213,7 @@ function ImpactEffects() {
         />
       </mesh>
       
-      {/* Flying debris particles (rocks, dust) */}
+      {/* 🪨 Flying debris particles (rocks, dust) */}
       {debrisParticles.map((particle, i) => (
         <mesh
           key={`debris-${i}`}
@@ -204,7 +230,7 @@ function ImpactEffects() {
         </mesh>
       ))}
       
-      {/* Smoke/dust cloud */}
+      {/* ☁️ Smoke/dust cloud */}
       {smokeParticles.map((particle, i) => (
         <mesh
           key={`smoke-${i}`}
@@ -223,4 +249,3 @@ function ImpactEffects() {
 }
 
 export default ImpactEffects
-
