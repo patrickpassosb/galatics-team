@@ -37,8 +37,8 @@ function Asteroid() {
     const store = useSimulationStore.getState()
 
     if (isPlaying && trajectory.length > 0) {
-      // SLOWER animation - multiply by 0.2 for cinematic slow motion
-      const newTime = Math.min(1, store.currentTime + delta * store.timeScale * 0.2)
+      // SUPER SLOW animation - multiply by 0.1 for dramatic cinematic effect
+      const newTime = Math.min(1, store.currentTime + delta * store.timeScale * 0.1)
       store.currentTime = newTime
 
       // Apply easing for smooth acceleration
@@ -48,7 +48,7 @@ function Asteroid() {
       const index = Math.floor(easedTime * (trajectory.length - 1))
       const point = trajectory[index]
       
-      if (point && point.position) {
+      if (point && point.position && Array.isArray(point.position) && point.position.length === 3) {
         const scale = 300 / 6371 // Convert from Earth radius scale
         const newPos = new THREE.Vector3(
           point.position[0] * scale,
@@ -56,35 +56,41 @@ function Asteroid() {
           point.position[2] * scale
         )
         
-        asteroidRef.current.position.copy(newPos)
-        
-        // Atmospheric glow effect when close to Earth
-        if (glowRef.current) {
-          const distToEarth = newPos.length() - 300
-          if (distToEarth < 100) {
-            const intensity = Math.max(0, 1 - distToEarth / 100)
-            glowRef.current.material.opacity = intensity * 0.6
-            glowRef.current.material.emissiveIntensity = intensity * 1.5
-          } else {
-            glowRef.current.material.opacity = 0
+        // Safety check for NaN values
+        if (!isNaN(newPos.x) && !isNaN(newPos.y) && !isNaN(newPos.z)) {
+          asteroidRef.current.position.copy(newPos)
+          
+          // Atmospheric glow effect when close to Earth
+          if (glowRef.current) {
+            const distToEarth = newPos.length() - 300
+            if (distToEarth < 100) {
+              const intensity = Math.max(0, 1 - distToEarth / 100)
+              glowRef.current.material.opacity = intensity * 0.6
+              glowRef.current.material.emissiveIntensity = intensity * 1.5
+            } else {
+              glowRef.current.material.opacity = 0
+            }
           }
-        }
-        
-        // Check for impact
-        if (newPos.length() <= 301 && !store.impactOccurred) {
-          store.setImpactOccurred(true)
+          
+          // Check for impact
+          if (newPos.length() <= 301 && !store.impactOccurred) {
+            store.setImpactOccurred(true)
+          }
         }
       }
     } else if (trajectory.length > 0) {
       // Position at start when paused
       const point = trajectory[0]
-      if (point && point.position) {
+      if (point && point.position && Array.isArray(point.position) && point.position.length === 3) {
         const scale = 300 / 6371
-        asteroidRef.current.position.set(
-          point.position[0] * scale,
-          point.position[1] * scale,
-          point.position[2] * scale
-        )
+        const x = point.position[0] * scale
+        const y = point.position[1] * scale
+        const z = point.position[2] * scale
+        
+        // Safety check for NaN values
+        if (!isNaN(x) && !isNaN(y) && !isNaN(z)) {
+          asteroidRef.current.position.set(x, y, z)
+        }
       }
     }
 

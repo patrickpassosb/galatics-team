@@ -52,15 +52,45 @@ export const useSimulationStore = create((set, get) => ({
   })),
 
   calculateImpact: () => {
-    const { asteroid } = get()
+    const { asteroid, impact } = get()
     const impactParams = calculateImpactParameters(asteroid)
-    set({ impact: { ...impactParams, calculated: true } })
+    // Preserve current latitude/longitude
+    set({ 
+      impact: { 
+        ...impactParams, 
+        latitude: impact.latitude,
+        longitude: impact.longitude,
+        calculated: true 
+      } 
+    })
   },
 
   updateTrajectory: () => {
     const { asteroid, impact } = get()
     const trajectoryPoints = calculateTrajectory(asteroid, impact)
-    set({ trajectory: trajectoryPoints })
+    
+    // Validate trajectory data before setting
+    if (Array.isArray(trajectoryPoints) && trajectoryPoints.length > 0) {
+      const isValid = trajectoryPoints.every(point => 
+        point && 
+        point.position && 
+        Array.isArray(point.position) && 
+        point.position.length === 3 &&
+        !isNaN(point.position[0]) &&
+        !isNaN(point.position[1]) &&
+        !isNaN(point.position[2])
+      )
+      
+      if (isValid) {
+        set({ trajectory: trajectoryPoints })
+      } else {
+        console.error('Invalid trajectory data detected')
+        set({ trajectory: [] })
+      }
+    } else {
+      console.error('Trajectory calculation failed')
+      set({ trajectory: [] })
+    }
   },
 
   togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
@@ -85,15 +115,20 @@ export const useSimulationStore = create((set, get) => ({
   },
 
   selectNEO: (neo) => {
-    // Convert NASA NEO data to our asteroid format
+    // Safely parse NASA NEO data with fallbacks
+    const velocityStr = neo.close_approach_data?.[0]?.relative_velocity?.kilometers_per_second
+    const distanceStr = neo.close_approach_data?.[0]?.miss_distance?.kilometers
+    const diameterMax = neo.estimated_diameter?.meters?.estimated_diameter_max
+    
+    // Convert NASA NEO data to our asteroid format with proper type conversion
     const asteroid = {
-      name: neo.name,
-      diameter: neo.estimated_diameter.meters.estimated_diameter_max,
-      velocity: neo.close_approach_data[0]?.relative_velocity.kilometers_per_second || 20,
+      name: neo.name || 'Unknown Asteroid',
+      diameter: parseFloat(diameterMax) || 100,
+      velocity: parseFloat(velocityStr) || 20,
       mass: 0,
       angle: 45,
       azimuth: 0,
-      distance: parseFloat(neo.close_approach_data[0]?.miss_distance.kilometers || 1000000),
+      distance: parseFloat(distanceStr) || 1000000,
       density: 2600
     }
     
@@ -103,6 +138,9 @@ export const useSimulationStore = create((set, get) => ({
     asteroid.mass = volume * asteroid.density
 
     set({ selectedNEO: neo, asteroid })
+    
+    // Calculate impact with current impact location
+    const { impact } = get()
     get().calculateImpact()
     get().updateTrajectory()
   },
