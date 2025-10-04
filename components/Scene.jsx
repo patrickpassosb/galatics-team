@@ -12,7 +12,7 @@ function Scene() {
   return (
     <div className='fixed inset-0 w-full h-full'>
       <Canvas
-        camera={{ position: [0, 0, 305], fov: 120 }}
+        camera={{ position: [0, 0, 420], fov: 120 }}
         gl={{ antialias: true, alpha: false }}
         style={{ width: '100%', height: '100%' }}
       >
@@ -39,7 +39,7 @@ function Scene() {
             enablePan={true}
             enableZoom={true}
             enableRotate={true}
-            minDistance={302}
+            minDistance={310}
             maxDistance={800}
             zoomSpeed={1.0}
             enableDamping={true}

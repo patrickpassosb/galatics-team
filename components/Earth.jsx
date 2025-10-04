@@ -116,7 +116,8 @@ function EarthMesh() {
       {/* Earth sphere - CLICKABLE with cursor feedback */}
       <mesh 
         ref={earthRef} 
-        position={[0, 0, 0]} 
+        position={[0, 0, 0]}
+        rotation={[0, 1.745, 0]}
         castShadow 
         receiveShadow
         onClick={handleEarthClick}
@@ -174,7 +175,7 @@ function EarthFallback() {
   // })
 
   return (
-    <mesh ref={earthRef} position={[0, 0, 0]} castShadow receiveShadow>
+    <mesh ref={earthRef} position={[0, 0, 0]} rotation={[0, 1.745, 0]} castShadow receiveShadow>
       <sphereGeometry args={[300, 128, 128]} />
       <meshStandardMaterial
         color="#1e4d8b"

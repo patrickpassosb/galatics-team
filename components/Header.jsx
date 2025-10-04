@@ -15,25 +15,6 @@ function Header() {
             </p>
           </div>
         </div>
-        
-        <div className='flex items-center gap-4'>
-          <a
-            href='https://api.nasa.gov'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-sm text-blue-400 hover:text-blue-300 transition-colors'
-          >
-            NASA API
-          </a>
-          <a
-            href='https://www.usgs.gov'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='text-sm text-blue-400 hover:text-blue-300 transition-colors'
-          >
-            USGS Data
-          </a>
-        </div>
       </div>
     </div>
   )

@@ -43,6 +43,41 @@ export function calculateImpactParameters(asteroid) {
   // Thermal radiation radius (km) - 3rd degree burns
   const thermalRadius = Math.pow(energyMegatons, 0.41) * 1.5
 
+  // 🔥 ENHANCED CALCULATIONS FOR DETAILED IMPACT ANALYSIS
+
+  // Crater depth (typically 0.25-0.35 of diameter for complex craters)
+  const craterDepth = craterDiameter * 0.3
+
+  // Volume of ejected material (approximated as a paraboloid)
+  const craterVolume = (Math.PI / 4) * Math.pow(craterDiameter / 2, 2) * craterDepth
+
+  // Fireball diameter (scales with energy, typically 2-3x crater for large impacts)
+  const fireballDiameter = Math.pow(energyMegatons, 0.4) * 1.8 * 1000 // meters
+
+  // Burn radii (based on thermal radiation intensity)
+  const burnRadius3rd = thermalRadius // 3rd degree burns (already calculated)
+  const burnRadius2nd = thermalRadius * 1.4 // 2nd degree burns
+  const burnRadius1st = thermalRadius * 1.8 // 1st degree burns
+
+  // Shock wave parameters
+  const peakOverpressure = Math.pow(energyMegatons / airblastRadius, 0.7) * 100 // PSI
+  const buildingCollapseRadius = Math.pow(energyMegatons, 0.33) * 1.5 // km (>20 PSI)
+  const glassBreakageRadius = airblastRadius * 2.5 // km (>1 PSI)
+  const peakDecibel = 170 + 10 * Math.log10(energyMegatons / Math.pow(airblastRadius, 2))
+
+  // Wind blast (peak wind speed scales with overpressure)
+  const peakWindSpeed = Math.pow(energyMegatons, 0.35) * 450 // km/h
+  const peakWindSpeedMph = peakWindSpeed * 0.621371 // mph
+  const treeDamageRadius = Math.pow(energyMegatons, 0.33) * 1.8 // km
+
+  // Seismic effects
+  const feltDistance = seismicMagnitude * 100 // km (rough approximation)
+  const seismicComparison = getEarthquakeComparison(seismicMagnitude)
+
+  // Energy comparisons
+  const energyComparison = getEnergyComparison(energyMegatons)
+  const windComparison = getWindComparison(peakWindSpeed)
+
   return {
     latitude: 40.7128, // Default NYC
     longitude: -74.0060,
@@ -51,8 +86,63 @@ export function calculateImpactParameters(asteroid) {
     seismicMagnitude,
     airblastRadius,
     thermalRadius,
-    mass
+    mass,
+    // Enhanced metrics
+    craterDepth,
+    craterVolume,
+    fireballDiameter,
+    burnRadius3rd,
+    burnRadius2nd,
+    burnRadius1st,
+    peakOverpressure,
+    buildingCollapseRadius,
+    glassBreakageRadius,
+    peakDecibel,
+    peakWindSpeed,
+    peakWindSpeedMph,
+    treeDamageRadius,
+    feltDistance,
+    seismicComparison,
+    energyComparison,
+    windComparison
   }
+}
+
+/**
+ * Get human-readable earthquake comparison
+ */
+function getEarthquakeComparison(magnitude) {
+  if (magnitude < 4.0) return 'Minor tremor'
+  if (magnitude < 5.0) return 'Moderate earthquake'
+  if (magnitude < 6.0) return 'Strong earthquake (like 1994 Northridge)'
+  if (magnitude < 7.0) return 'Major earthquake (like 2010 Haiti)'
+  if (magnitude < 8.0) return 'Great earthquake (like 1906 San Francisco)'
+  if (magnitude < 9.0) return 'Massive earthquake (like 2011 Tōhoku)'
+  return 'Mega-earthquake (unprecedented in modern times)'
+}
+
+/**
+ * Get human-readable energy comparison
+ */
+function getEnergyComparison(megatons) {
+  if (megatons < 0.02) return `${(megatons * 1000).toFixed(0)} kilotons (small tactical nuke)`
+  if (megatons < 1) return `${(megatons * 50).toFixed(0)}x Hiroshima bomb`
+  if (megatons < 50) return `${(megatons / 15).toFixed(1)}x Castle Bravo test`
+  if (megatons < 1000) return `${(megatons / 50).toFixed(1)}x Tsar Bomba`
+  if (megatons < 100000) return `${(megatons / 1000).toFixed(0)}x all nuclear weapons on Earth`
+  return 'Extinction-level event'
+}
+
+/**
+ * Get human-readable wind comparison
+ */
+function getWindComparison(kmh) {
+  if (kmh < 120) return 'Hurricane Category 1'
+  if (kmh < 180) return 'Hurricane Category 3'
+  if (kmh < 250) return 'Hurricane Category 5'
+  if (kmh < 400) return `${(kmh / 75).toFixed(1)}x Hurricane Katrina`
+  if (kmh < 600) return 'EF5 Tornado winds'
+  return `${(kmh / 150).toFixed(0)}x strongest tornado ever recorded`
 }
 
 /**
