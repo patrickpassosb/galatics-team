@@ -36,6 +36,7 @@ export const useSimulationStore = create((set, get) => ({
   timeScale: 1,
   showTrajectory: true,
   showImpactZone: true,
+  impactOccurred: false,
   
   // NASA data
   neoData: null,
@@ -69,6 +70,8 @@ export const useSimulationStore = create((set, get) => ({
   toggleTrajectory: () => set((state) => ({ showTrajectory: !state.showTrajectory })),
 
   toggleImpactZone: () => set((state) => ({ showImpactZone: !state.showImpactZone })),
+
+  setImpactOccurred: (occurred) => set({ impactOccurred: occurred }),
 
   fetchNEOData: async () => {
     try {
@@ -106,6 +109,7 @@ export const useSimulationStore = create((set, get) => ({
 
   reset: () => set({
     currentTime: 0,
-    isPlaying: false
+    isPlaying: false,
+    impactOccurred: false
   })
 }))
