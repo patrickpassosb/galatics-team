@@ -7,6 +7,7 @@ import AsteroidTrajectory from './AsteroidTrajectory'
 import ImpactTarget from './ImpactTarget'
 import EnhancedImpactEffects from './EnhancedImpactEffects'
 import ImpactMarker from './ImpactMarker'
+import ImpactPointer from './ImpactPointer'
 import CameraShake from './CameraShake'
 
 function Scene() {
@@ -34,6 +35,7 @@ function Scene() {
           <ImpactTarget visible={true} animate={false} />
           <EnhancedImpactEffects />
           <ImpactMarker />
+          <ImpactPointer />
           
           {/* Camera effects */}
           <CameraShake />
