@@ -1,6 +1,6 @@
 ﻿import { create } from 'zustand'
 import { fetchNASANEOData } from '../services/nasaAPI'
-import { calculateImpactParameters, calculateTrajectory } from '../physics/orbitalMechanics'
+import { calculateImpactParameters, calculateTrajectory, applyMitigationStrategy } from '../physics/orbitalMechanics'
 
 export const useSimulationStore = create((set, get) => ({
   // Asteroid parameters
@@ -34,6 +34,9 @@ export const useSimulationStore = create((set, get) => ({
   // NASA data
   neoData: null,
   selectedNEO: null,
+  mitigation: {
+    lastStrategy: null,
+  },
 
   // Actions
   updateAsteroid: (updates) => set((state) => ({
@@ -83,6 +86,16 @@ export const useSimulationStore = create((set, get) => ({
       console.error('Trajectory calculation failed')
       set({ trajectory: [] })
     }
+  },
+
+  // Apply a mitigation strategy and recompute
+  applyMitigation: (strategy) => {
+    const { asteroid } = get()
+    const modified = applyMitigationStrategy(asteroid, strategy)
+    set({ asteroid: modified, mitigation: { lastStrategy: strategy } })
+    // Recalculate downstream effects
+    get().calculateImpact()
+    get().updateTrajectory()
   },
 
 

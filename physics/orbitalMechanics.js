@@ -427,9 +427,41 @@ export function latLonToCartesian(lat, lon, radius = EARTH_RADIUS) {
 }
 
 /**
+ * Apply mitigation strategy (simple param modifications for simulation)
+ */
+export function applyMitigationStrategy(asteroid, strategy) {
+  const modified = { ...asteroid }
+
+  switch (strategy?.type) {
+    case 'kinetic_impactor': {
+      const deltaV = Number(strategy.deltaV) || 0.02 // km/s
+      const azimuthChange = Number(strategy.azimuthChange) || 1 // degrees
+      modified.velocity = Math.max(0, modified.velocity + deltaV)
+      modified.azimuth = (modified.azimuth + azimuthChange) % 360
+      break
+    }
+    case 'gravity_tractor': {
+      const azimuthChange = Number(strategy.azimuthChange) || 0.5
+      const angleChange = Number(strategy.angleChange) || 0.3
+      modified.azimuth = (modified.azimuth + azimuthChange) % 360
+      modified.angle = Math.min(90, Math.max(0, modified.angle + angleChange))
+      break
+    }
+    case 'nuclear_device': {
+      const deltaV = Number(strategy.deltaV) || 0.1
+      modified.velocity = Math.max(0, modified.velocity + deltaV)
+      break
+    }
+    default:
+      break
+  }
+
+  return modified
+}
+
+/**
  * Convert Cartesian to lat/lon
  */
-
 export {
   DENSITIES
 }

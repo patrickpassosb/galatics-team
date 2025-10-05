@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react'
 import { Target, Info } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
+import MitigationPanel from './MitigationPanel'
 
 const MATERIAL_TYPES = [
   { id: 'icy', name: 'Icy', density: 1000, color: '#A5F3FC', tooltip: 'Comets, volatile-rich objects' },
@@ -60,7 +61,7 @@ function ControlPanel() {
                     overflow-y-auto custom-scrollbar'>
       {/* Tabs */}
       <div className='flex gap-2 mb-4'>
-        {['asteroid', 'nasa'].map(tab => (
+        {['asteroid', 'nasa', 'mitigation'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -217,6 +218,13 @@ function ControlPanel() {
           ) : (
             <div className='text-gray-400 text-sm'>Loading NASA data...</div>
           )}
+        </div>
+      )}
+
+      {/* Mitigation Tab */}
+      {activeTab === 'mitigation' && (
+        <div className='space-y-4'>
+          <MitigationPanel />
         </div>
       )}
 
