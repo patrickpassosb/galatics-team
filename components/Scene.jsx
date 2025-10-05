@@ -4,7 +4,7 @@ import { OrbitControls, Stars } from '@react-three/drei'
 import Earth from './Earth'
 import EnhancedAsteroid from './EnhancedAsteroid'
 import AsteroidTrajectory from './AsteroidTrajectory'
-import ImpactZone from './ImpactZone'
+import ImpactTarget from './ImpactTarget'
 import EnhancedImpactEffects from './EnhancedImpactEffects'
 import ImpactMarker from './ImpactMarker'
 import CameraShake from './CameraShake'
@@ -31,7 +31,7 @@ function Scene() {
           <Earth />
           <EnhancedAsteroid />
           <AsteroidTrajectory />
-          <ImpactZone />
+          <ImpactTarget visible={true} animate={false} />
           <EnhancedImpactEffects />
           <ImpactMarker />
           
