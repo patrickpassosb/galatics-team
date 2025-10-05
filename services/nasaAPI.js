@@ -1,7 +1,7 @@
 ﻿import axios from 'axios'
 
 // NASA API Configuration
-const NASA_API_KEY = 'DEMO_KEY' // Users should replace with their own key from https://api.nasa.gov
+const NASA_API_KEY = '0SS0PYXqmPsZl3TNmnPeuZamAMRuWDlei826hy0T' // Users should replace with their own key from https://api.nasa.gov
 const NEO_API_URL = 'https://api.nasa.gov/neo/rest/v1/feed'
 
 /**

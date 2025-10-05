@@ -55,8 +55,7 @@ export const useSimulationStore = create((set, get) => ({
 
   calculateImpact: () => {
     const { asteroid, impact } = get()
-    const impactParams = calculateImpactParameters(asteroid)
-    // Preserve current latitude/longitude
+    const impactParams = calculateImpactParameters(asteroid, impact)  // Pass both!
     set({ 
       impact: { 
         ...impactParams, 
