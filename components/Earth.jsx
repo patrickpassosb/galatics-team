@@ -76,8 +76,27 @@ function EarthMesh() {
       const intersection = event.intersections[0]
       const point = intersection.point
       
+      // IMPORTANT: Earth is at [0, 100, 0] with rotation [0, 5.6, 0]
+      // Adjust click point relative to Earth's center
+      const EARTH_Y_OFFSET = 100
+      const EARTH_ROTATION_Y = 5.6
+      
+      // Subtract Earth's position
+      const relativeX = point.x - 0
+      const relativeY = point.y - EARTH_Y_OFFSET
+      const relativeZ = point.z - 0
+
+      // Reverse Earth's Y-rotation to get original coordinates for lat/lon conversion
+      const cosRot = Math.cos(-EARTH_ROTATION_Y)
+      const sinRot = Math.sin(-EARTH_ROTATION_Y)
+
+      const unrotatedX = relativeX * cosRot - relativeZ * sinRot
+      const unrotatedZ = relativeX * sinRot + relativeZ * cosRot
+
       // Convert to lat/lon
-      const { lat, lon } = cartesianToLatLon(point.x, point.y, point.z)
+      const { lat, lon } = cartesianToLatLon(unrotatedX, relativeY, unrotatedZ)
+      
+      console.log('Click at lat:', lat.toFixed(2), 'lon:', lon.toFixed(2)) // Debug
       
       // Update impact location
       setImpactLocation(lat, lon)

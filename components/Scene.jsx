@@ -34,7 +34,6 @@ function Scene() {
           <AsteroidTrajectory />
           <ImpactTarget visible={true} animate={false} />
           <EnhancedImpactEffects />
-          <ImpactMarker />
           <ImpactPointer />
           
           {/* Camera effects */}
