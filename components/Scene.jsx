@@ -2,11 +2,12 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import Earth from './Earth'
-import Asteroid from './Asteroid'
+import EnhancedAsteroid from './EnhancedAsteroid'
 import AsteroidTrajectory from './AsteroidTrajectory'
 import ImpactZone from './ImpactZone'
-import ImpactEffects from './ImpactEffects'
+import EnhancedImpactEffects from './EnhancedImpactEffects'
 import ImpactMarker from './ImpactMarker'
+import CameraShake from './CameraShake'
 
 function Scene() {
   return (
@@ -28,11 +29,14 @@ function Scene() {
 
           {/* Main 3D objects */}
           <Earth />
-          <Asteroid />
+          <EnhancedAsteroid />
           <AsteroidTrajectory />
           <ImpactZone />
-          <ImpactEffects />
+          <EnhancedImpactEffects />
           <ImpactMarker />
+          
+          {/* Camera effects */}
+          <CameraShake />
 
           {/* Camera controls */}
           <OrbitControls

@@ -37,6 +37,8 @@ export const useSimulationStore = create((set, get) => ({
   showTrajectory: true,
   showImpactZone: true,
   impactOccurred: false,
+  distanceToImpact: 0, // km
+  timeToImpact: 0, // seconds
   
   // NASA data
   neoData: null,
