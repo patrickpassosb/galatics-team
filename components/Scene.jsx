@@ -1,6 +1,8 @@
-﻿import React, { Suspense } from 'react'
-import { Canvas } from '@react-three/fiber'
-import { OrbitControls, Stars } from '@react-three/drei'
+﻿import React, { Suspense, useRef } from 'react'
+import { Canvas, useLoader } from '@react-three/fiber'
+import { OrbitControls } from '@react-three/drei'
+import { TextureLoader } from 'three'
+import * as THREE from 'three'
 import Earth from './Earth'
 import EnhancedAsteroid from './EnhancedAsteroid'
 import AsteroidTrajectory from './AsteroidTrajectory'
@@ -9,6 +11,22 @@ import EnhancedImpactEffects from './EnhancedImpactEffects'
 import ImpactMarker from './ImpactMarker'
 import ImpactPointer from './ImpactPointer'
 import CameraShake from './CameraShake'
+
+// Star Sphere Component - creates giant sphere with stars on inside surface
+function StarSphere() {
+  const starSphereRef = useRef()
+
+  return (
+    <mesh ref={starSphereRef}>
+      <sphereGeometry args={[2000, 32, 32]} />
+      <meshBasicMaterial
+        color="#000000" // Black space background
+        side={THREE.BackSide} // Render on inside of sphere
+        transparent={false}
+      />
+    </mesh>
+  )
+}
 
 function Scene() {
   return (
@@ -25,8 +43,8 @@ function Scene() {
           <pointLight position={[-600, 0, -300]} intensity={0.7} />
           <hemisphereLight args={['#ffffff', '#1a1f35', 0.4]} />
 
-          {/* Space background */}
-          <Stars radius={500} depth={100} count={5000} factor={7} saturation={0} fade speed={1} />
+          {/* Giant star sphere background - complete 360° coverage */}
+          <StarSphere />
 
           {/* Main 3D objects */}
           <Earth />

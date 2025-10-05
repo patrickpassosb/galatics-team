@@ -35,7 +35,7 @@ export const useSimulationStore = create((set, get) => ({
   isPlaying: false,
   currentTime: 0,
   timeScale: 1,
-  showTrajectory: true,
+  showTrajectory: false,
   showImpactZone: true,
   impactOccurred: false,
   distanceToImpact: 0, // km

@@ -12,26 +12,18 @@ function ImpactPointer() {
   // Don't show if impact occurred or no location set
   if (impactOccurred || !impact.latitude || !impact.longitude) return null
 
-  // Calculate pointer position accounting for Earth's position and rotation
+  // Calculate pointer position (use same coordinate system as click detection)
   const adjustedPosition = useMemo(() => {
     // Get position on Earth surface (radius 301 = slightly above 300)
     const position = latLonToCartesian(impact.latitude, impact.longitude, 301)
 
-    // Earth is at [0, 100, 0] with rotation [0, 5.6, 0]
+    // Earth is at [0, 100, 0] - just add Y offset, no rotation needed
     const EARTH_Y_OFFSET = 100
-    const EARTH_ROTATION_Y = 5.6
-
-    // Apply Earth's Y-rotation to position (same as Earth's mesh rotation)
-    const cosRot = Math.cos(EARTH_ROTATION_Y)
-    const sinRot = Math.sin(EARTH_ROTATION_Y)
-
-    const rotatedX = position.x * cosRot - position.z * sinRot
-    const rotatedZ = position.x * sinRot + position.z * cosRot
 
     return new THREE.Vector3(
-      rotatedX,
+      position.x,
       position.y + EARTH_Y_OFFSET,
-      rotatedZ
+      position.z
     )
   }, [impact.latitude, impact.longitude])
 
