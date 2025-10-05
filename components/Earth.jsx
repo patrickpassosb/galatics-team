@@ -1,9 +1,57 @@
-﻿import React, { useRef, Suspense, useMemo } from 'react'
-import { useFrame, useLoader, useThree } from '@react-three/fiber'
+﻿import React, { useRef, Suspense, useMemo, useEffect, useState } from 'react'
+import { useLoader, useThree } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 import * as THREE from 'three'
 import { useSimulationStore } from '../store/simulationStore'
 import { latLonToCartesian } from '../physics/orbitalMechanics'
+
+// Custom hook for loading Earth texture with error handling
+function useEarthTexture() {
+  const [texture, setTexture] = useState(null)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const loadTexture = async () => {
+      try {
+        const loader = new TextureLoader()
+        const loadedTexture = await new Promise((resolve, reject) => {
+          loader.load(
+            'https://unpkg.com/three-globe@2.24.9/example/img/earth-blue-marble.jpg',
+            resolve,
+            undefined,
+            reject
+          )
+        })
+        setTexture(loadedTexture)
+      } catch (err) {
+        console.warn('Failed to load Earth texture, using fallback:', err)
+        setError(true)
+      }
+    }
+
+    loadTexture()
+  }, [])
+
+  const fallbackTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+
+    // Create a simple blue gradient
+    const gradient = ctx.createLinearGradient(0, 0, 512, 256)
+    gradient.addColorStop(0, '#1e40af') // Blue
+    gradient.addColorStop(0.5, '#0f172a') // Dark blue
+    gradient.addColorStop(1, '#1e40af') // Blue
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 512, 256)
+
+    return new THREE.CanvasTexture(canvas)
+  }, [])
+
+  return error || !texture ? fallbackTexture : texture
+}
 
 // Convert 3D point on Earth to latitude/longitude
 function cartesianToLatLon(x, y, z) {
@@ -19,11 +67,27 @@ function EarthMesh() {
   const { impactOccurred, impact, isPlaying, setImpactLocation, calculateImpact, updateTrajectory } = useSimulationStore()
   const { gl } = useThree() // Get gl context for cursor changes
 
-  // Load Earth texture
-  const colorMap = useLoader(
-    TextureLoader,
-    'https://unpkg.com/three-globe@2.24.9/example/img/earth-blue-marble.jpg'
-  )
+  // Use the custom hook for Earth texture with error handling
+  const colorMap = useEarthTexture()
+
+  // Create fallback Earth texture (for use in crater texture if needed)
+  const fallbackTexture = useMemo(() => {
+    const canvas = document.createElement('canvas')
+    canvas.width = 512
+    canvas.height = 256
+    const ctx = canvas.getContext('2d')
+
+    // Create a simple blue gradient
+    const gradient = ctx.createLinearGradient(0, 0, 512, 256)
+    gradient.addColorStop(0, '#1e40af') // Blue
+    gradient.addColorStop(0.5, '#0f172a') // Dark blue
+    gradient.addColorStop(1, '#1e40af') // Blue
+
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, 512, 256)
+
+    return new THREE.CanvasTexture(canvas)
+  }, [])
 
   // Create DRAMATIC crater texture
   const craterTexture = useMemo(() => {
@@ -66,8 +130,6 @@ function EarthMesh() {
 
   // 🎯 Handle click on Earth to set impact location
   const handleEarthClick = (event) => {
-    // Don't allow clicking during animation
-    if (isPlaying) return
     
     event.stopPropagation()
     
@@ -100,22 +162,16 @@ function EarthMesh() {
     }
   }
 
-  // Update crater position (rotation DISABLED)
-  useFrame(() => {
-    // 🛑 EARTH ROTATION DISABLED for better visibility
-    // if (earthRef.current) {
-    //   earthRef.current.rotation.y += delta * 0.05
-    // }
-    
-    // Update crater position to stay on impact location
-    if (craterGroupRef.current && impactOccurred && impact && typeof impact.latitude === 'number' && typeof impact.longitude === 'number') {
+  // Update crater position when impact location changes
+  React.useEffect(() => {
+    if (craterGroupRef.current && impact && typeof impact.latitude === 'number' && typeof impact.longitude === 'number') {
       const impactPos = latLonToCartesian(impact.latitude, impact.longitude, 300.2)
       if (!isNaN(impactPos.x) && !isNaN(impactPos.y) && !isNaN(impactPos.z)) {
         craterGroupRef.current.position.copy(impactPos)
         craterGroupRef.current.lookAt(0, 0, 0)
       }
     }
-  })
+  }, [impact.latitude, impact.longitude])
 
   // Calculate BIGGER crater scale for visibility
   const craterScale = useMemo(() => {

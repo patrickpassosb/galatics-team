@@ -1,32 +1,37 @@
-﻿import React, { Suspense, useRef } from 'react'
-import { Canvas, useLoader } from '@react-three/fiber'
+﻿import React, { Suspense } from 'react'
+import { Canvas } from '@react-three/fiber'
 import { OrbitControls } from '@react-three/drei'
-import { TextureLoader } from 'three'
-import * as THREE from 'three'
 import Earth from './Earth'
 import EnhancedAsteroid from './EnhancedAsteroid'
-import AsteroidTrajectory from './AsteroidTrajectory'
 import ImpactTarget from './ImpactTarget'
-import EnhancedImpactEffects from './EnhancedImpactEffects'
-import ImpactMarker from './ImpactMarker'
 import ImpactPointer from './ImpactPointer'
-import CameraShake from './CameraShake'
 
-// Star Sphere Component - creates giant sphere with stars on inside surface
+// Simple star sphere background component
 function StarSphere() {
-  const starSphereRef = useRef()
+  const starsCount = 2000
+  const positions = React.useMemo(() => {
+    const positions = new Float32Array(starsCount * 3)
+    for (let i = 0; i < starsCount * 3; i++) {
+      positions[i] = (Math.random() - 0.5) * 2000
+    }
+    return positions
+  }, [])
 
   return (
-    <mesh ref={starSphereRef}>
-      <sphereGeometry args={[2000, 32, 32]} />
-      <meshBasicMaterial
-        color="#000000" // Black space background
-        side={THREE.BackSide} // Render on inside of sphere
-        transparent={false}
-      />
-    </mesh>
+    <points>
+      <bufferGeometry>
+        <bufferAttribute
+          attach="attributes-position"
+          count={starsCount}
+          array={positions}
+          itemSize={3}
+        />
+      </bufferGeometry>
+      <pointsMaterial size={2} color="#ffffff" sizeAttenuation={false} />
+    </points>
   )
 }
+
 
 function Scene() {
   return (
@@ -49,13 +54,8 @@ function Scene() {
           {/* Main 3D objects */}
           <Earth />
           <EnhancedAsteroid />
-          <AsteroidTrajectory />
           <ImpactTarget visible={true} animate={false} />
-          <EnhancedImpactEffects />
           <ImpactPointer />
-          
-          {/* Camera effects */}
-          <CameraShake />
 
           {/* Camera controls */}
           <OrbitControls

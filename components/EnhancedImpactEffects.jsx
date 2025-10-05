@@ -1,5 +1,4 @@
 import React, { useRef, useState, useEffect, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
 import { useSimulationStore } from '../store/simulationStore'
 import { latLonToCartesian } from '../physics/orbitalMechanics'
 import * as THREE from 'three'

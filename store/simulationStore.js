@@ -28,19 +28,9 @@ export const useSimulationStore = create((set, get) => ({
     calculated: false
   },
 
-  // Trajectory data
+  // Trajectory data for asteroid path
   trajectory: [],
-  
-  // Simulation state
-  isPlaying: false,
-  currentTime: 0,
-  timeScale: 1,
-  showTrajectory: false,
-  showImpactZone: true,
-  impactOccurred: false,
-  distanceToImpact: 0, // km
-  timeToImpact: 0, // seconds
-  
+
   // NASA data
   neoData: null,
   selectedNEO: null,
@@ -95,15 +85,6 @@ export const useSimulationStore = create((set, get) => ({
     }
   },
 
-  togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
-
-  setTimeScale: (scale) => set({ timeScale: scale }),
-
-  toggleTrajectory: () => set((state) => ({ showTrajectory: !state.showTrajectory })),
-
-  toggleImpactZone: () => set((state) => ({ showImpactZone: !state.showImpactZone })),
-
-  setImpactOccurred: (occurred) => set({ impactOccurred: occurred }),
 
   fetchNEOData: async () => {
     try {
@@ -142,9 +123,4 @@ export const useSimulationStore = create((set, get) => ({
     get().updateTrajectory()
   },
 
-  reset: () => set({
-    currentTime: 0,
-    isPlaying: false,
-    impactOccurred: false
-  })
 }))

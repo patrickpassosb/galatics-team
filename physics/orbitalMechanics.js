@@ -429,51 +429,6 @@ export function latLonToCartesian(lat, lon, radius = EARTH_RADIUS) {
 /**
  * Convert Cartesian to lat/lon
  */
-export function cartesianToLatLon(x, y, z) {
-  const radius = Math.sqrt(x*x + y*y + z*z)
-  const lat = 90 - (Math.acos(y / radius) * 180 / Math.PI)
-  const lon = (Math.atan2(z, -x) * 180 / Math.PI) - 180
-
-  return { lat, lon }
-}
-
-/**
- * Calculate orbital velocity for circular orbit at given altitude
- */
-export function calculateOrbitalVelocity(altitude) {
-  const radius = (EARTH_RADIUS + altitude) * 1000
-  const velocity = Math.sqrt(G * EARTH_MASS / radius)
-  return velocity / 1000
-}
-
-/**
- * Apply mitigation strategy
- */
-export function applyMitigationStrategy(asteroid, strategy) {
-  const modified = { ...asteroid }
-
-  switch (strategy.type) {
-    case 'kinetic_impactor':
-      const deltaV = strategy.deltaV || 0.01
-      modified.velocity += deltaV
-      modified.azimuth += strategy.azimuthChange || 1
-      break
-
-    case 'gravity_tractor':
-      modified.azimuth += strategy.azimuthChange || 0.5
-      modified.angle += strategy.angleChange || 0.5
-      break
-
-    case 'nuclear_device':
-      modified.velocity += strategy.deltaV || 0.1
-      break
-
-    default:
-      break
-  }
-
-  return modified
-}
 
 export {
   DENSITIES
@@ -483,9 +438,6 @@ export default {
   calculateImpactParameters,
   calculateTrajectory,
   latLonToCartesian,
-  cartesianToLatLon,
-  calculateOrbitalVelocity,
-  applyMitigationStrategy,
   DENSITIES,
   EARTH_RADIUS,
   ESCAPE_VELOCITY,

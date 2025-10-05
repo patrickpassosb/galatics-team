@@ -1,5 +1,4 @@
-import React, { useRef, useMemo } from 'react'
-import { useFrame } from '@react-three/fiber'
+import React, { useRef, useMemo, useEffect } from 'react'
 import { useSimulationStore } from '../store/simulationStore'
 import { latLonToCartesian } from '../physics/orbitalMechanics'
 import * as THREE from 'three'
@@ -27,8 +26,8 @@ function ImpactPointer() {
     )
   }, [impact.latitude, impact.longitude])
 
-  // Animate pointer and orient it to face outward from Earth
-  useFrame((state) => {
+  // Orient pointer to face outward from Earth center
+  React.useEffect(() => {
     if (groupRef.current) {
       // Make pointer look away from Earth center [0, 100, 0]
       const earthCenter = new THREE.Vector3(0, 100, 0)
@@ -38,18 +37,7 @@ function ImpactPointer() {
       lookTarget.add(adjustedPosition)
       groupRef.current.lookAt(lookTarget)
     }
-    
-    // Pulse animation on inner group
-    if (outerRef.current && !impactOccurred) {
-      const pulse = 1 + Math.sin(state.clock.getElapsedTime() * 2) * 0.08
-      outerRef.current.scale.setScalar(pulse)
-      
-      // Slow rotation for dynamic effect
-      if (!isPlaying) {
-        outerRef.current.rotation.z += 0.003
-      }
-    }
-  })
+  }, [adjustedPosition])
 
   return (
     <group ref={groupRef} position={adjustedPosition.toArray()}>
