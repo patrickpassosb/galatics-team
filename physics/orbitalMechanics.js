@@ -366,51 +366,6 @@ function getWindComparison(kmh) {
   return `${(kmh / 150).toFixed(0)}x strongest tornado ever recorded`
 }
 
-/**
- * Calculate asteroid trajectory approaching Earth
- */
-export function calculateTrajectory(asteroid, impact) {
-  const trajectoryPoints = []
-  const steps = 100
-  
-  const startDistance = asteroid.distance || 1000000
-  
-  const impactPoint = latLonToCartesian(
-    impact.latitude,
-    impact.longitude,
-    EARTH_RADIUS
-  )
-
-  const azimuthRad = asteroid.azimuth * Math.PI / 180
-  const angleRad = asteroid.angle * Math.PI / 180
-  
-  const approachDir = new THREE.Vector3(
-    Math.cos(azimuthRad) * Math.sin(angleRad),
-    Math.sin(azimuthRad) * Math.sin(angleRad),
-    Math.cos(angleRad)
-  ).normalize()
-
-  for (let i = 0; i <= steps; i++) {
-    const t = i / steps
-    const distance = startDistance * (1 - t) + EARTH_RADIUS * t
-    
-    const gravityCurve = Math.pow(1 - t, 2) * 0.2
-    
-    const position = new THREE.Vector3()
-      .copy(impactPoint)
-      .add(
-        approachDir.clone().multiplyScalar(distance - EARTH_RADIUS + gravityCurve * startDistance)
-      )
-
-    trajectoryPoints.push({
-      position: position.toArray(),
-      distance,
-      time: t
-    })
-  }
-
-  return trajectoryPoints
-}
 
 /**
  * Convert lat/lon to 3D Cartesian coordinates
@@ -481,7 +436,6 @@ export {
 
 export default {
   calculateImpactParameters,
-  calculateTrajectory,
   latLonToCartesian,
   cartesianToLatLon,
   calculateOrbitalVelocity,

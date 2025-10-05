@@ -4,21 +4,15 @@ import { useSimulationStore } from '../store/simulationStore'
 import * as THREE from 'three'
 import { plasmaTrailVertexShader, plasmaTrailFragmentShader } from '../shaders/atmosphericShaders'
 
-// Easing function for dramatic acceleration
-function easeInCubic(t) {
-  return t * t * t
-}
-
 function EnhancedAsteroid() {
   const asteroidRef = useRef()
   const plasmaGlowRef = useRef()
-  const sonicBoomRef = useRef()
   const trailGroupRef = useRef()
   
   const [atmosphericEntry, setAtmosphericEntry] = useState(false)
   const [shockwaveVisible, setShockwaveVisible] = useState(false)
   
-  const { asteroid, trajectory, isPlaying } = useSimulationStore()
+  const { asteroid } = useSimulationStore()
 
   // Rocky asteroid geometry with realistic surface
   const asteroidGeometry = useMemo(() => {
@@ -75,7 +69,7 @@ function EnhancedAsteroid() {
     })
   }, [])
 
-  // Sonic boom shockwave ring refs (must be created outside useMemo)
+  // Sonic boom shockwave ring refs
   const shockwaveRef1 = useRef()
   const shockwaveRef2 = useRef()
   const shockwaveRef3 = useRef()
@@ -89,127 +83,15 @@ function EnhancedAsteroid() {
     ]
   }, [])
 
-  // Main animation loop
+  // Simple animation loop - just rotate the asteroid
   useFrame((state, delta) => {
-    if (!asteroidRef.current || !trajectory || trajectory.length === 0) return
-
-    const store = useSimulationStore.getState()
-
-    if (isPlaying && trajectory.length > 0) {
-      // Timeline: 10 seconds approach
-      const IMPACT_DURATION = 10.0
-      const newTime = Math.min(IMPACT_DURATION, store.currentTime + delta)
-      store.currentTime = newTime
-
-      const normalizedTime = newTime / IMPACT_DURATION
-      const easedTime = easeInCubic(normalizedTime)
-      
-      // Get position from trajectory
-      const index = Math.floor(easedTime * (trajectory.length - 1))
-      const point = trajectory[index]
-      
-      if (point && point.position && Array.isArray(point.position) && point.position.length === 3) {
-        const scale = 300 / 6371
-        const newPos = new THREE.Vector3(
-          point.position[0] * scale,
-          point.position[1] * scale,
-          point.position[2] * scale
-        )
-        
-        if (!isNaN(newPos.x) && !isNaN(newPos.y) && !isNaN(newPos.z)) {
-          asteroidRef.current.position.copy(newPos)
-          
-          const distToEarth = newPos.length() - 300
-          const atmosphereHeight = 150
-          
-          // ATMOSPHERIC ENTRY EFFECTS (~100km altitude)
-          if (distToEarth < atmosphereHeight) {
-            if (!atmosphericEntry) {
-              setAtmosphericEntry(true)
-              setShockwaveVisible(true)
-            }
-            
-            const intensity = Math.max(0, 1 - distToEarth / atmosphereHeight)
-            
-            // Update plasma glow shader
-            if (plasmaGlowRef.current && plasmaMaterial) {
-              plasmaMaterial.uniforms.time.value = newTime
-              plasmaMaterial.uniforms.intensity.value = intensity
-              plasmaGlowRef.current.scale.setScalar(1 + intensity * 0.8)
-            }
-            
-            // Spawn intense trail particles
-            if (Math.random() > 0.3) {
-              const deadParticle = trailParticles.find(p => p.life <= 0)
-              if (deadParticle) {
-                deadParticle.position.copy(newPos)
-                const spreadRadius = 3 + intensity * 5
-                deadParticle.velocity.set(
-                  (Math.random() - 0.5) * spreadRadius,
-                  (Math.random() - 0.5) * spreadRadius,
-                  (Math.random() - 0.5) * spreadRadius
-                )
-                deadParticle.life = deadParticle.maxLife
-              }
-            }
-            
-            // Sonic boom shockwaves during high-speed entry
-            if (intensity > 0.5) {
-              shockwaveRings.forEach((ring, i) => {
-                if (ring.ref.current) {
-                  const phase = (newTime * 4 + ring.delay) % 1
-                  ring.ref.current.scale.setScalar(1 + phase * 6)
-                  ring.ref.current.material.opacity = (1 - phase) * intensity * 0.6
-                }
-              })
-            }
-            
-            // Scale asteroid for perspective (gets larger as it approaches)
-            const perspectiveScale = 1 + (1 - distToEarth / atmosphereHeight) * 0.5
-            asteroidRef.current.scale.setScalar(scale * perspectiveScale)
-            
-          } else {
-            if (atmosphericEntry) setAtmosphericEntry(false)
-            if (plasmaGlowRef.current) {
-              plasmaMaterial.uniforms.intensity.value = 0
-            }
-          }
-          
-          // Distance/time countdown calculation
-          const distanceKm = distToEarth * 6371 / 300
-          const timeToImpact = IMPACT_DURATION - newTime
-          
-          // Store for UI display (you can access this in your UI components)
-          store.distanceToImpact = distanceKm
-          store.timeToImpact = timeToImpact
-          
-          // DETECT IMPACT
-          if (distToEarth <= 5 && !store.impactOccurred) {
-            store.setImpactOccurred(true)
-          }
-          
-          // FORCE IMPACT at end
-          if (normalizedTime >= 0.99 && !store.impactOccurred) {
-            store.setImpactOccurred(true)
-          }
-        }
-      }
-    } else if (trajectory.length > 0 && !isPlaying) {
-      // Reset to start position
-      const point = trajectory[0]
-      if (point && point.position) {
-        const scale = 300 / 6371
-        asteroidRef.current.position.set(
-          point.position[0] * scale,
-          point.position[1] * scale,
-          point.position[2] * scale
-        )
-      }
-      setAtmosphericEntry(false)
-      setShockwaveVisible(false)
+    // Rotate asteroid
+    if (asteroidRef.current) {
+      asteroidRef.current.rotation.x += delta * 0.3
+      asteroidRef.current.rotation.y += delta * 0.2
     }
 
-    // UPDATE TRAIL PARTICLES
+    // Update trail particles
     trailParticles.forEach((particle) => {
       if (particle.life > 0) {
         particle.life -= delta * 2
@@ -217,12 +99,6 @@ function EnhancedAsteroid() {
         particle.velocity.multiplyScalar(0.94) // Air resistance
       }
     })
-
-    // Rotate asteroid
-    if (asteroidRef.current) {
-      asteroidRef.current.rotation.x += delta * 0.3
-      asteroidRef.current.rotation.y += delta * 0.2
-    }
   })
 
   const asteroidScale = Math.max(3, (asteroid.diameter / 1000) * 30)

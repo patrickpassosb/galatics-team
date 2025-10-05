@@ -3,7 +3,6 @@ import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import Earth from './Earth'
 import EnhancedAsteroid from './EnhancedAsteroid'
-import AsteroidTrajectory from './AsteroidTrajectory'
 import ImpactTarget from './ImpactTarget'
 import EnhancedImpactEffects from './EnhancedImpactEffects'
 import ImpactMarker from './ImpactMarker'
@@ -31,7 +30,6 @@ function Scene() {
           {/* Main 3D objects */}
           <Earth />
           <EnhancedAsteroid />
-          <AsteroidTrajectory />
           <ImpactTarget visible={true} animate={false} />
           <EnhancedImpactEffects />
           <ImpactMarker />

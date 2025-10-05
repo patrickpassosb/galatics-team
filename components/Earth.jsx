@@ -16,7 +16,7 @@ function cartesianToLatLon(x, y, z) {
 function EarthMesh() {
   const earthRef = useRef()
   const craterGroupRef = useRef()
-  const { impactOccurred, impact, isPlaying, setImpactLocation, calculateImpact, updateTrajectory } = useSimulationStore()
+  const { impactOccurred, impact, isPlaying, setImpactLocation, calculateImpact } = useSimulationStore()
   const { gl } = useThree() // Get gl context for cursor changes
 
   // Load Earth texture
@@ -81,10 +81,9 @@ function EarthMesh() {
       
       // Update impact location
       setImpactLocation(lat, lon)
-      
-      // Recalculate trajectory for new location
+
+      // Recalculate impact for new location
       calculateImpact()
-      updateTrajectory()
     }
   }
 

@@ -39,7 +39,7 @@ Calculated Mass: ${calculatedMass} kg`
     mitigation: {
       title: 'Mitigation Strategies',
       content: `Kinetic Impactor: Collide spacecraft with asteroid to change velocity.
-      Gravity Tractor: Use spacecraft's gravity to slowly alter trajectory.
+      Gravity Tractor: Use spacecraft's gravity to slowly alter asteroid path.
       Nuclear Device: Last resort option for large, imminent threats.
       Small velocity changes (cm/s) applied years in advance can deflect an asteroid enough to miss Earth.`
     },
@@ -116,7 +116,6 @@ Calculated Mass: ${calculatedMass} kg`
                     <ol className='list-decimal list-inside space-y-2 text-sm text-gray-300'>
                       <li>Select an asteroid from NASA data or customize parameters</li>
                       <li>Click "Calculate Impact" to compute consequences</li>
-                      <li>Press "Play" to watch the trajectory animation</li>
                       <li>Use mouse to rotate, zoom, and pan the 3D view</li>
                     </ol>
                   </div>

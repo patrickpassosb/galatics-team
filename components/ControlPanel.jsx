@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react'
-import { Play, Pause, RotateCcw, Target, Eye, EyeOff, Info } from 'lucide-react'
+import { Target, Info } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
 
 const MATERIAL_TYPES = [
@@ -14,18 +14,12 @@ function ControlPanel() {
   const {
     asteroid,
     impact,
-    isPlaying,
-    showTrajectory,
     showImpactZone,
     neoData,
     updateAsteroid,
     calculateImpact,
-    updateTrajectory,
-    togglePlay,
-    toggleTrajectory,
     toggleImpactZone,
-    selectNEO,
-    reset
+    selectNEO
   } = useSimulationStore()
 
   const [activeTab, setActiveTab] = useState('asteroid')
@@ -58,7 +52,6 @@ function ControlPanel() {
 
   const handleCalculate = () => {
     calculateImpact()
-    updateTrajectory()
   }
 
   return (
@@ -67,7 +60,7 @@ function ControlPanel() {
                     overflow-y-auto custom-scrollbar'>
       {/* Tabs */}
       <div className='flex gap-2 mb-4'>
-        {['asteroid', 'nasa', 'launch'].map(tab => (
+        {['asteroid', 'nasa'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -227,47 +220,6 @@ function ControlPanel() {
         </div>
       )}
 
-      {/* Launch Controls Tab */}
-      {activeTab === 'launch' && (
-        <div className='space-y-4'>
-          <h3 className='text-lg font-semibold mb-3'>Launch Controls</h3>
-          
-          <div className='flex gap-2'>
-            <button
-              onClick={togglePlay}
-              className='flex-1 bg-green-600 hover:bg-green-700 py-2 rounded flex items-center justify-center gap-2'
-            >
-              {isPlaying ? <Pause size={18} /> : <Play size={18} />}
-              {isPlaying ? 'Pause' : 'Play'}
-            </button>
-            <button
-              onClick={reset}
-              className='flex-1 bg-gray-600 hover:bg-gray-700 py-2 rounded flex items-center justify-center gap-2'
-            >
-              <RotateCcw size={18} />
-              Reset
-            </button>
-          </div>
-
-          <div className='space-y-2'>
-            <button
-              onClick={toggleTrajectory}
-              className='w-full bg-space-light hover:bg-space-light/70 py-2 rounded flex items-center justify-center gap-2'
-            >
-              {showTrajectory ? <Eye size={18} /> : <EyeOff size={18} />}
-              {showTrajectory ? 'Hide' : 'Show'} Trajectory
-            </button>
-            
-            <button
-              onClick={toggleImpactZone}
-              className='w-full bg-space-light hover:bg-space-light/70 py-2 rounded flex items-center justify-center gap-2'
-            >
-              {showImpactZone ? <Eye size={18} /> : <EyeOff size={18} />}
-              {showImpactZone ? 'Hide' : 'Show'} Impact Zone
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

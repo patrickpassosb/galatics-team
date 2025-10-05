@@ -1,6 +1,6 @@
 ﻿import { create } from 'zustand'
 import { fetchNASANEOData } from '../services/nasaAPI'
-import { calculateImpactParameters, calculateTrajectory } from '../physics/orbitalMechanics'
+import { calculateImpactParameters } from '../physics/orbitalMechanics'
 
 export const useSimulationStore = create((set, get) => ({
   // Asteroid parameters
@@ -28,18 +28,9 @@ export const useSimulationStore = create((set, get) => ({
     calculated: false
   },
 
-  // Trajectory data
-  trajectory: [],
-  
   // Simulation state
-  isPlaying: false,
-  currentTime: 0,
-  timeScale: 1,
-  showTrajectory: true,
   showImpactZone: true,
   impactOccurred: false,
-  distanceToImpact: 0, // km
-  timeToImpact: 0, // seconds
   
   // NASA data
   neoData: null,
@@ -67,39 +58,6 @@ export const useSimulationStore = create((set, get) => ({
     })
   },
 
-  updateTrajectory: () => {
-    const { asteroid, impact } = get()
-    const trajectoryPoints = calculateTrajectory(asteroid, impact)
-    
-    // Validate trajectory data before setting
-    if (Array.isArray(trajectoryPoints) && trajectoryPoints.length > 0) {
-      const isValid = trajectoryPoints.every(point => 
-        point && 
-        point.position && 
-        Array.isArray(point.position) && 
-        point.position.length === 3 &&
-        !isNaN(point.position[0]) &&
-        !isNaN(point.position[1]) &&
-        !isNaN(point.position[2])
-      )
-      
-      if (isValid) {
-        set({ trajectory: trajectoryPoints })
-      } else {
-        console.error('Invalid trajectory data detected')
-        set({ trajectory: [] })
-      }
-    } else {
-      console.error('Trajectory calculation failed')
-      set({ trajectory: [] })
-    }
-  },
-
-  togglePlay: () => set((state) => ({ isPlaying: !state.isPlaying })),
-
-  setTimeScale: (scale) => set({ timeScale: scale }),
-
-  toggleTrajectory: () => set((state) => ({ showTrajectory: !state.showTrajectory })),
 
   toggleImpactZone: () => set((state) => ({ showImpactZone: !state.showImpactZone })),
 
@@ -139,12 +97,9 @@ export const useSimulationStore = create((set, get) => ({
     
     // Auto-calculate impact with current location
     get().calculateImpact()
-    get().updateTrajectory()
   },
 
   reset: () => set({
-    currentTime: 0,
-    isPlaying: false,
     impactOccurred: false
   })
 }))
