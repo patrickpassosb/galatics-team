@@ -12,7 +12,8 @@ export const useSimulationStore = create((set, get) => ({
     angle: 45, // impact angle in degrees
     azimuth: 0, // approach direction (0-360)
     distance: 1000000, // km from Earth
-    density: 2600 // kg/mÂ³ typical asteroid density
+    density: 3000, // kg/mÂ³ typical asteroid density
+    materialType: 'rocky' // material type
   },
 
   // Impact parameters
@@ -125,7 +126,8 @@ export const useSimulationStore = create((set, get) => ({
       angle: 45, // Default impact angle
       azimuth: 0, // Default approach direction
       distance: neo.distance || 1000000,
-      density: 2600 // Standard asteroid density kg/m³
+      density: 3000, // Standard rocky asteroid density kg/m³
+      materialType: 'rocky' // Default to rocky (most common type)
     }
     
     // Calculate mass from diameter and density (sphere approximation)

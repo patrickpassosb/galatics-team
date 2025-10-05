@@ -1,6 +1,14 @@
 ﻿import React, { useState } from 'react'
-import { Play, Pause, RotateCcw, Target, Eye, EyeOff } from 'lucide-react'
+import { Play, Pause, RotateCcw, Target, Eye, EyeOff, Info } from 'lucide-react'
 import { useSimulationStore } from '../store/simulationStore'
+
+const MATERIAL_TYPES = [
+  { id: 'icy', name: 'Icy', density: 1000, color: '#A5F3FC', tooltip: 'Comets, volatile-rich objects' },
+  { id: 'carbonaceous', name: 'Carbonaceous', density: 1500, color: '#78716C', tooltip: 'C-type asteroids, carbon-rich' },
+  { id: 'rocky', name: 'Rocky', density: 3000, color: '#D97706', tooltip: 'S-type asteroids, most common' },
+  { id: 'iron', name: 'Iron', density: 8000, color: '#71717A', tooltip: 'M-type asteroids, metallic cores' },
+  { id: 'custom', name: 'Custom', density: null, color: '#8B5CF6', tooltip: 'Custom density value' }
+]
 
 function ControlPanel() {
   const {
@@ -21,9 +29,31 @@ function ControlPanel() {
   } = useSimulationStore()
 
   const [activeTab, setActiveTab] = useState('asteroid')
+  const [showTooltip, setShowTooltip] = useState(null)
+  const [customDensity, setCustomDensity] = useState(2600)
 
   const handleAsteroidChange = (field, value) => {
     updateAsteroid({ [field]: parseFloat(value) })
+  }
+
+  const handleMaterialChange = (materialId) => {
+    const material = MATERIAL_TYPES.find(m => m.id === materialId)
+    if (material.density !== null) {
+      updateAsteroid({ 
+        materialType: materialId, 
+        density: material.density 
+      })
+    } else {
+      updateAsteroid({ materialType: materialId })
+    }
+  }
+
+  const handleCustomDensityChange = (value) => {
+    const density = parseFloat(value)
+    setCustomDensity(density)
+    if (asteroid.materialType === 'custom') {
+      updateAsteroid({ density })
+    }
   }
 
   const handleCalculate = () => {
@@ -37,7 +67,7 @@ function ControlPanel() {
                     overflow-y-auto custom-scrollbar'>
       {/* Tabs */}
       <div className='flex gap-2 mb-4'>
-        {['asteroid', 'nasa', 'simulation'].map(tab => (
+        {['asteroid', 'nasa', 'launch'].map(tab => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -97,6 +127,63 @@ function ControlPanel() {
             <span className='text-sm text-gray-300'>{asteroid.angle.toFixed(0)}°</span>
           </div>
 
+          <div>
+            <div className='flex items-center gap-2 mb-2'>
+              <label className='block text-sm'>Density</label>
+            </div>
+            <div className='grid grid-cols-2 gap-2 mb-2'>
+              {MATERIAL_TYPES.map(material => (
+                <div key={material.id} className='relative'>
+                  <button
+                    onClick={() => handleMaterialChange(material.id)}
+                    onMouseEnter={() => setShowTooltip(material.id)}
+                    onMouseLeave={() => setShowTooltip(null)}
+                    className={`w-full px-3 py-2 rounded text-sm font-medium transition-all ${
+                      asteroid.materialType === material.id
+                        ? 'ring-2 ring-offset-2 ring-offset-space-medium'
+                        : 'opacity-70 hover:opacity-100'
+                    }`}
+                    style={{
+                      backgroundColor: material.color,
+                      color: material.id === 'icy' ? '#000' : '#fff',
+                      ringColor: material.color
+                    }}
+                  >
+                    {material.name}
+                  </button>
+                  {showTooltip === material.id && (
+                    <div className='absolute z-10 bottom-full left-1/2 transform -translate-x-1/2 mb-2 
+                                    px-3 py-2 bg-gray-900 text-white text-xs rounded shadow-lg 
+                                    whitespace-nowrap pointer-events-none'>
+                      {material.tooltip}
+                      <div className='absolute top-full left-1/2 transform -translate-x-1/2 
+                                      border-4 border-transparent border-t-gray-900'></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+            
+            {asteroid.materialType === 'custom' ? (
+              <div className='mt-2'>
+                <label className='block text-sm mb-1'>Custom Density (kg/m³)</label>
+                <input
+                  type='number'
+                  min='100'
+                  max='10000'
+                  step='100'
+                  value={customDensity}
+                  onChange={(e) => handleCustomDensityChange(e.target.value)}
+                  className='w-full bg-space-light border border-gray-600 rounded px-3 py-2 text-white'
+                />
+              </div>
+            ) : (
+              <div className='text-xs text-gray-400 text-center'>
+                Density: {asteroid.density} kg/m³
+              </div>
+            )}
+          </div>
+
           <button
             onClick={handleCalculate}
             className='w-full bg-blue-600 hover:bg-blue-700 py-2 rounded flex items-center justify-center gap-2'
@@ -140,10 +227,10 @@ function ControlPanel() {
         </div>
       )}
 
-      {/* Simulation Controls Tab */}
-      {activeTab === 'simulation' && (
+      {/* Launch Controls Tab */}
+      {activeTab === 'launch' && (
         <div className='space-y-4'>
-          <h3 className='text-lg font-semibold mb-3'>Simulation Controls</h3>
+          <h3 className='text-lg font-semibold mb-3'>Launch Controls</h3>
           
           <div className='flex gap-2'>
             <button

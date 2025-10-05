@@ -3,8 +3,9 @@ import { useSimulationStore } from '../store/simulationStore'
 import { ChevronDown, ChevronUp } from 'lucide-react'
 
 function ImpactAnalysisPanel() {
-  const { impact } = useSimulationStore()
+  const { impact, asteroid } = useSimulationStore()
   const [expandedSections, setExpandedSections] = useState({
+    projectile: true,
     summary: true,
     crater: true,
     fireball: true,
@@ -38,6 +39,48 @@ function ImpactAnalysisPanel() {
       {/* Scrollable Content */}
       <div className='overflow-y-auto max-h-[calc(80vh-80px)] custom-scrollbar'>
         
+        {/* Projectile Section */}
+        <CollapsibleSection
+          title="Projectile"
+          icon="☄️"
+          isExpanded={expandedSections.projectile}
+          onToggle={() => toggleSection('projectile')}
+        >
+          <div className='space-y-2'>
+            <MetricRow 
+              label="Density Type" 
+              value={asteroid.materialType.charAt(0).toUpperCase() + asteroid.materialType.slice(1)}
+              color="text-cyan-300"
+            />
+            <MetricRow 
+              label="Density Value" 
+              value={`${asteroid.density} kg/m³`}
+              color="text-blue-300"
+            />
+            <MetricRow 
+              label="Diameter" 
+              value={`${asteroid.diameter.toFixed(0)} m`}
+              sublabel={`${(asteroid.diameter / 1000).toFixed(2)} km`}
+            />
+            <MetricRow 
+              label="Velocity" 
+              value={`${asteroid.velocity.toFixed(1)} km/s`}
+              sublabel={`${(asteroid.velocity * 3600).toFixed(0)} km/h`}
+            />
+            <MetricRow 
+              label="Impact Angle" 
+              value={`${asteroid.angle}°`}
+              sublabel="From horizontal"
+            />
+            <MetricRow 
+              label="Estimated Mass" 
+              value={`${((4/3) * Math.PI * Math.pow(asteroid.diameter / 2, 3) * asteroid.density / 1e9).toFixed(2)} × 10⁹ kg`}
+              sublabel="Based on spherical approximation"
+              color="text-yellow-300"
+            />
+          </div>
+        </CollapsibleSection>
+
         {/* Summary Section */}
         <CollapsibleSection
           title="Summary"

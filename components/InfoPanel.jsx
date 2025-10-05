@@ -1,15 +1,34 @@
 ﻿import React, { useState } from 'react'
 import { Info, X, HelpCircle } from 'lucide-react'
+import { useSimulationStore } from '../store/simulationStore'
 
 function InfoPanel() {
+  const { asteroid } = useSimulationStore()
   const [isOpen, setIsOpen] = useState(false)
   const [activeInfo, setActiveInfo] = useState('overview')
+
+  const materialName = asteroid.materialType ? asteroid.materialType.charAt(0).toUpperCase() + asteroid.materialType.slice(1) : 'Unknown'
+  const calculatedMass = ((4/3) * Math.PI * Math.pow(asteroid.diameter / 2, 3) * asteroid.density).toExponential(2)
 
   const infoSections = {
     overview: {
       title: 'Overview',
       content: `This simulator models asteroid impacts on Earth using real physics and NASA data. 
       Adjust asteroid parameters to see how size, velocity, and approach angle affect impact consequences.`
+    },
+    materials: {
+      title: 'Material Properties',
+      content: `Icy (1000 kg/m³): Comets and volatile-rich objects. Fragile, often break up in atmosphere.
+      
+Carbonaceous (1500 kg/m³): C-type asteroids, carbon-rich and relatively soft. Common in outer asteroid belt.
+
+Rocky (3000 kg/m³): S-type asteroids made of silicate materials. Most common type of asteroid.
+
+Iron (8000 kg/m³): M-type asteroids, metallic cores from differentiated parent bodies. Dense and resistant to atmospheric breakup.
+
+Current Selection: ${materialName}
+Density: ${asteroid.density} kg/m³
+Calculated Mass: ${calculatedMass} kg`
     },
     physics: {
       title: 'Physics Models',

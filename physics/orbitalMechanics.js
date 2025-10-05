@@ -11,10 +11,10 @@ const SCALE_HEIGHT = 8.5 // km - altura de escala atmosférica
 
 // Densidades típicas (kg/m³)
 const DENSITIES = {
+  icy: 1000,
+  carbonaceous: 1500,
   rocky: 3000,
-  iron: 8000,
-  carbonaceous: 2000,
-  icy: 500
+  iron: 8000
 }
 
 /**
@@ -473,6 +473,10 @@ export function applyMitigationStrategy(asteroid, strategy) {
   }
 
   return modified
+}
+
+export {
+  DENSITIES
 }
 
 export default {

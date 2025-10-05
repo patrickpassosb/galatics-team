@@ -8,8 +8,10 @@ function easeInCubic(t) {
   return t * t * t // Cubic easing for dramatic acceleration
 }
 
+
 function Asteroid() {
   const asteroidRef = useRef()
+  console.log("Passou")
   const glowRef = useRef()
   const trailParticlesRef = useRef([])
   const { asteroid, trajectory, isPlaying } = useSimulationStore()
