@@ -2,12 +2,6 @@
 import { Canvas } from '@react-three/fiber'
 import { OrbitControls, Stars } from '@react-three/drei'
 import Earth from './Earth'
-import EnhancedAsteroid from './EnhancedAsteroid'
-import ImpactTarget from './ImpactTarget'
-import EnhancedImpactEffects from './EnhancedImpactEffects'
-import ImpactMarker from './ImpactMarker'
-import ImpactPointer from './ImpactPointer'
-import CameraShake from './CameraShake'
 
 function Scene() {
   return (
@@ -18,32 +12,31 @@ function Scene() {
         style={{ width: '100%', height: '100%' }}
       >
         <Suspense fallback={null}>
-          {/* Lighting - improved for better visibility */}
-          <ambientLight intensity={0.8} />
-          <directionalLight position={[600, 300, 300]} intensity={3} castShadow />
-          <pointLight position={[-600, 0, -300]} intensity={0.7} />
-          <hemisphereLight args={['#ffffff', '#1a1f35', 0.4]} />
+          {/* Simple, bright lighting */}
+          <ambientLight intensity={1.5} />
+          <directionalLight position={[600, 300, 300]} intensity={1.0} />
+          <directionalLight position={[-400, 200, -200]} intensity={0.8} />
 
-          {/* Space background */}
-          <Stars radius={500} depth={100} count={5000} factor={7} saturation={0} fade speed={1} />
+          {/* Starfield background */}
+          <Stars 
+            radius={1000} 
+            depth={200} 
+            count={9000} 
+            factor={8} 
+            saturation={0.1} 
+            fade={false} 
+            speed={0.3} 
+          />
 
-          {/* Main 3D objects */}
+          {/* Earth */}
           <Earth />
-          <EnhancedAsteroid />
-          <ImpactTarget visible={true} animate={false} />
-          <EnhancedImpactEffects />
-          <ImpactMarker />
-          <ImpactPointer />
           
-          {/* Camera effects */}
-          <CameraShake />
-
           {/* Camera controls */}
           <OrbitControls
-            enablePan={true}
+            enablePan={false}
             enableZoom={true}
             enableRotate={true}
-            minDistance={310}
+            minDistance={400}
             maxDistance={800}
             zoomSpeed={1.0}
             enableDamping={true}

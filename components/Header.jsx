@@ -9,7 +9,7 @@ function Header() {
         <div className='flex items-center gap-3'>
           <Rocket size={32} className='text-blue-400' />
           <div>
-            <h1 className='text-2xl font-bold'>Asteroid Impact Simulator</h1>
+            <h1 className='text-2xl font-bold'>Earth Visualization</h1>
             <p className='text-sm text-gray-300'>
               Interactive 3D visualization powered by NASA data
             </p>

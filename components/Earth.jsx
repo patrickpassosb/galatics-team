@@ -1,196 +1,26 @@
-﻿import React, { useRef, Suspense, useMemo } from 'react'
-import { useFrame, useLoader, useThree } from '@react-three/fiber'
+﻿import React, { useRef, Suspense } from 'react'
+import { useLoader } from '@react-three/fiber'
 import { TextureLoader } from 'three'
-import * as THREE from 'three'
-import { useSimulationStore } from '../store/simulationStore'
-import { latLonToCartesian } from '../physics/orbitalMechanics'
 
-// Convert 3D point on Earth to latitude/longitude
-function cartesianToLatLon(x, y, z) {
-  const radius = Math.sqrt(x * x + y * y + z * z)
-  const lat = 90 - (Math.acos(y / radius) * 180 / Math.PI)
-  const lon = (Math.atan2(z, -x) * 180 / Math.PI) - 180
-  return { lat, lon }
-}
-
-function EarthMesh() {
+function Earth() {
   const earthRef = useRef()
-  const craterGroupRef = useRef()
-  const { impactOccurred, impact, isPlaying, setImpactLocation, calculateImpact } = useSimulationStore()
-  const { gl } = useThree() // Get gl context for cursor changes
-
+  
   // Load Earth texture
   const colorMap = useLoader(
     TextureLoader,
     'https://unpkg.com/three-globe@2.24.9/example/img/earth-blue-marble.jpg'
   )
 
-  // Create DRAMATIC crater texture
-  const craterTexture = useMemo(() => {
-    const size = 512
-    const canvas = document.createElement('canvas')
-    canvas.width = size
-    canvas.height = size
-    const ctx = canvas.getContext('2d')
-    
-    const center = size / 2
-    
-    // Draw VERY DARK, VISIBLE crater with radial gradient
-    const gradient = ctx.createRadialGradient(center, center, 0, center, center, center)
-    gradient.addColorStop(0, 'rgba(0, 0, 0, 1)')          // Pure black center
-    gradient.addColorStop(0.3, 'rgba(20, 10, 5, 1)')      // Very dark brown
-    gradient.addColorStop(0.5, 'rgba(60, 30, 15, 0.95)')  // Dark crater
-    gradient.addColorStop(0.7, 'rgba(100, 50, 25, 0.7)')  // Brown rim
-    gradient.addColorStop(0.85, 'rgba(140, 70, 35, 0.4)') // Ejecta
-    gradient.addColorStop(1, 'rgba(0, 0, 0, 0)')          // Fade out
-    
-    ctx.fillStyle = gradient
-    ctx.fillRect(0, 0, size, size)
-    
-    // Add some texture/detail
-    for (let i = 0; i < 200; i++) {
-      const angle = Math.random() * Math.PI * 2
-      const dist = Math.random() * center * 0.6
-      const x = center + Math.cos(angle) * dist
-      const y = center + Math.sin(angle) * dist
-      const radius = Math.random() * 3 + 1
-      
-      ctx.fillStyle = `rgba(10, 5, 0, ${Math.random() * 0.5})`
-      ctx.beginPath()
-      ctx.arc(x, y, radius, 0, Math.PI * 2)
-      ctx.fill()
-    }
-    
-    return new THREE.CanvasTexture(canvas)
-  }, [])
-
-  // 🎯 Handle click on Earth to set impact location
-  const handleEarthClick = (event) => {
-    // Don't allow clicking during animation
-    if (isPlaying) return
-    
-    event.stopPropagation()
-    
-    // Get the intersection point
-    if (event.intersections && event.intersections.length > 0) {
-      const intersection = event.intersections[0]
-      const point = intersection.point
-      
-      // Convert to lat/lon
-      const { lat, lon } = cartesianToLatLon(point.x, point.y, point.z)
-      
-      // Update impact location
-      setImpactLocation(lat, lon)
-
-      // Recalculate impact for new location
-      calculateImpact()
-    }
-  }
-
-  // Update crater position (rotation DISABLED)
-  useFrame(() => {
-    // 🛑 EARTH ROTATION DISABLED for better visibility
-    // if (earthRef.current) {
-    //   earthRef.current.rotation.y += delta * 0.05
-    // }
-    
-    // Update crater position to stay on impact location
-    if (craterGroupRef.current && impactOccurred && impact && typeof impact.latitude === 'number' && typeof impact.longitude === 'number') {
-      const impactPos = latLonToCartesian(impact.latitude, impact.longitude, 300.2)
-      if (!isNaN(impactPos.x) && !isNaN(impactPos.y) && !isNaN(impactPos.z)) {
-        craterGroupRef.current.position.copy(impactPos)
-        craterGroupRef.current.lookAt(0, 0, 0)
-      }
-    }
-  })
-
-  // Calculate BIGGER crater scale for visibility
-  const craterScale = useMemo(() => {
-    if (!impact || !impact.craterDiameter) return 30
-    return Math.max(30, (impact.craterDiameter / 1000) * 12)
-  }, [impact])
-
   return (
-    <group>
-      {/* Earth sphere - CLICKABLE with cursor feedback */}
+    <Suspense fallback={null}>
       <mesh 
         ref={earthRef} 
         position={[0, 100, 0]}
         rotation={[0, 5.6, 0]}
-        castShadow 
-        receiveShadow
-        onClick={handleEarthClick}
-        onPointerOver={() => !isPlaying && (gl.domElement.style.cursor = 'crosshair')}
-        onPointerOut={() => gl.domElement.style.cursor = 'auto'}
       >
-        <sphereGeometry args={[300, 128, 128]} />
-        <meshStandardMaterial
-          map={colorMap}
-          metalness={0.1}
-          roughness={0.8}
-        />
+        <sphereGeometry args={[300, 64, 64]} />
+        <meshBasicMaterial map={colorMap} />
       </mesh>
-      
-      {/* DRAMATIC VISIBLE Crater - appears after impact */}
-      {impactOccurred && (
-        <group ref={craterGroupRef}>
-          {/* Main crater dark spot */}
-          <mesh position={[0, 0.1, 0]}>
-            <circleGeometry args={[craterScale, 64]} />
-            <meshBasicMaterial
-              map={craterTexture}
-              transparent
-              opacity={0.95}
-              side={THREE.DoubleSide}
-              depthTest={false}
-            />
-          </mesh>
-          
-          {/* Secondary darker center for emphasis */}
-          <mesh position={[0, 0.2, 0]}>
-            <circleGeometry args={[craterScale * 0.5, 32]} />
-            <meshBasicMaterial
-              color='#000000'
-              transparent
-              opacity={0.8}
-              side={THREE.DoubleSide}
-              depthTest={false}
-            />
-          </mesh>
-        </group>
-      )}
-    </group>
-  )
-}
-
-function EarthFallback() {
-  const earthRef = useRef()
-
-  // 🛑 EARTH ROTATION DISABLED for better visibility
-  // useFrame((state, delta) => {
-  //   if (earthRef.current) {
-  //     earthRef.current.rotation.y += delta * 0.05
-  //   }
-  // })
-
-  return (
-    <mesh ref={earthRef} position={[0, 100, 0]} rotation={[0, 5.6, 0]} castShadow receiveShadow>
-      <sphereGeometry args={[300, 128, 128]} />
-      <meshStandardMaterial
-        color="#1e4d8b"
-        emissive="#0d2847"
-        emissiveIntensity={0.15}
-        metalness={0.2}
-        roughness={0.8}
-      />
-    </mesh>
-  )
-}
-
-function Earth() {
-  return (
-    <Suspense fallback={<EarthFallback />}>
-      <EarthMesh />
     </Suspense>
   )
 }

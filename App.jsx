@@ -3,7 +3,6 @@ import Scene from './components/Scene'
 import ControlPanel from './components/ControlPanel'
 import Header from './components/Header'
 import InfoPanel from './components/InfoPanel'
-import ImpactAnalysisPanel from './components/ImpactAnalysisPanel'
 import { useSimulationStore } from './store/simulationStore'
 
 function App() {
@@ -11,7 +10,7 @@ function App() {
   const { fetchNEOData } = useSimulationStore()
 
   useEffect(() => {
-    // Load initial asteroid data from NASA
+    // Load initial NASA NEO data
     const loadInitialData = async () => {
       setLoading(true)
       try {
@@ -29,7 +28,6 @@ function App() {
     <div className="w-full h-screen bg-space-dark relative overflow-hidden">
       <Header />
       <Scene />
-      <ImpactAnalysisPanel />
       <ControlPanel />
       <InfoPanel />
       {loading && (
