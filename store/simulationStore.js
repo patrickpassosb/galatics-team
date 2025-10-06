@@ -2,10 +2,8 @@
 import { fetchNASANEOData } from '../services/nasaAPI'
 
 export const useSimulationStore = create((set) => ({
-  // NASA data
   neoData: null,
 
-  // Actions
   fetchNEOData: async () => {
     try {
       const data = await fetchNASANEOData()

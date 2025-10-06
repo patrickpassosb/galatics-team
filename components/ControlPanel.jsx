@@ -1,6 +1,25 @@
 ﻿import React from 'react'
 import { useSimulationStore } from '../store/simulationStore'
 
+function NEOItem({ neo }) {
+  return (
+    <div className='p-3 bg-space-light rounded'>
+      <div className='flex items-start justify-between'>
+        <div className='font-bold text-base text-blue-300'>{neo.name}</div>
+        {neo.isPotentiallyHazardous && (
+          <span className='text-xs text-red-400'>⚠</span>
+        )}
+      </div>
+      <div className='text-xs text-gray-300 mt-1 space-y-0.5'>
+        <div>Diameter: {neo.diameter.average.toFixed(0)} m</div>
+        <div>Velocity: {neo.velocity.toFixed(1)} km/s</div>
+        <div>Distance: {(neo.distance / 1000).toFixed(0)}k km</div>
+        <div>Date: {neo.closeApproachDate}</div>
+      </div>
+    </div>
+  )
+}
+
 function ControlPanel() {
   const { neoData } = useSimulationStore()
 
@@ -13,23 +32,7 @@ function ControlPanel() {
         {neoData && neoData.length > 0 ? (
           <div className='space-y-2'>
             {neoData.slice(0, 10).map(neo => (
-              <div
-                key={neo.id}
-                className='p-3 bg-space-light rounded'
-              >
-                <div className='flex items-start justify-between'>
-                  <div className='font-semibold text-sm'>{neo.name}</div>
-                  {neo.isPotentiallyHazardous && (
-                    <span className='text-xs text-red-400'>⚠</span>
-                  )}
-                </div>
-                <div className='text-xs text-gray-300 mt-1 space-y-0.5'>
-                  <div>Diameter: {neo.diameter.average.toFixed(0)} m</div>
-                  <div>Velocity: {neo.velocity.toFixed(1)} km/s</div>
-                  <div>Distance: {(neo.distance / 1000).toFixed(0)}k km</div>
-                  <div>Date: {neo.closeApproachDate}</div>
-                </div>
-              </div>
+              <NEOItem key={neo.id} neo={neo} />
             ))}
           </div>
         ) : (

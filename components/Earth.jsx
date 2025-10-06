@@ -2,14 +2,11 @@
 import { useLoader } from '@react-three/fiber'
 import { TextureLoader } from 'three'
 
+const EARTH_TEXTURE_URL = 'https://unpkg.com/three-globe@2.24.9/example/img/earth-blue-marble.jpg'
+
 function Earth() {
   const earthRef = useRef()
-  
-  // Load Earth texture
-  const colorMap = useLoader(
-    TextureLoader,
-    'https://unpkg.com/three-globe@2.24.9/example/img/earth-blue-marble.jpg'
-  )
+  const colorMap = useLoader(TextureLoader, EARTH_TEXTURE_URL)
 
   return (
     <Suspense fallback={null}>
